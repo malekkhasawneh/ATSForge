@@ -1,0 +1,5 @@
+<footer class="site-footer">
+  <div class="footer-lead"><a class="brand brand-light" href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='img/ATSForge without bg.png') }}" alt="ATSForge logo" width="34" height="34"> ATSForge</a><p>Practical tools and trustworthy guidance for clearer job applications.</p><a class="footer-tool-link" href="{{ url_for('resume_template_selector') }}">Choose a resume template &rarr;</a><br><a class="footer-tool-link" href="{{ url_for('resume_tailor_page') }}">Tailor an existing DOCX &rarr;</a></div>
+  {% for group, slugs in nav_groups.items() %}<nav aria-label="{{ group }} links"><strong>{{ group }}</strong>{% for slug in slugs %}<a href="{{ url_for('content_page', slug=slug) }}">{{ all_pages[slug].title }}</a>{% endfor %}</nav>{% endfor %}
+  <div class="footer-bottom"><span>&copy; 2026 ATSForge</span><span>Privacy-minded resume building. No employment guarantees.</span></div>
+</footer>

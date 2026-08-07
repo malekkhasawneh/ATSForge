@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block extra_head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/tailor.css') }}">{% endblock %}
+{% block content %}
+<section class="tailor-hero">
+  <div class="tailor-copy">
+    <p class="eyebrow"><span></span>DOCX RESUME TAILOR</p>
+    <h1>Fit your experience<br>to the <em>right role.</em></h1>
+    <p>Upload an existing Word résumé and paste the target job description. ATSForge checks role language, preserves your evidence, and returns a clean ATS-readable DOCX.</p>
+    <div class="tailor-trust"><span>✓ DOCX only</span><span>✓ No permanent file storage</span><span>✓ No invented metrics</span></div>
+  </div>
+  <div class="tailor-card">
+    <form id="tailor-form" enctype="multipart/form-data">
+      <div class="tailor-step"><span>1</span><div><h2>Upload your résumé</h2><p>Microsoft Word `.docx`, up to 5 MB</p></div></div>
+      <label class="file-drop" id="file-drop">
+        <input type="file" name="resume" id="resume-file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required>
+        <span class="file-icon">DOCX</span><strong id="file-label">Choose your Word résumé</strong><small>or drag and drop it here</small>
+      </label>
+      <div class="tailor-step"><span>2</span><div><h2>Add the job description</h2><p>Paste it below or upload a DOCX</p></div></div>
+      <label class="job-file"><input type="file" name="job_file" id="job-file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"><span>Upload job description DOCX</span><small id="job-file-label">Optional</small></label>
+      <label class="sr-only" for="tailor-job">Job description</label>
+      <textarea id="tailor-job" name="job_description" rows="9" maxlength="20000" placeholder="Or paste the complete job description here…"></textarea>
+      <div class="tailor-consent"><input type="checkbox" id="tailor-agree" required><label for="tailor-agree">I confirm this résumé is mine to process and understand that AI suggestions require my review.</label></div>
+      <button class="button tailor-submit" type="submit"><span>Tailor my résumé</span><b>→</b></button>
+      <p class="mode-note">{% if ai_configured %}<span class="mode-live">●</span> Evidence-constrained AI tailoring is available.{% else %}<span class="mode-format">●</span> ATS formatting mode is active. Configure `HF_TOKEN` to enable AI rewriting.{% endif %}</p>
+    </form>
+    <div class="tailor-progress" id="tailor-progress" hidden><div class="progress-spinner"></div><h2>Reviewing your evidence…</h2><p>Parsing the DOCX, comparing role language, and preparing a clean Word document.</p></div>
+    <div class="tailor-result" id="tailor-result" hidden>
+      <span class="result-check">✓</span><h2>Your tailored résumé is ready.</h2><p id="result-mode"></p>
+      <div class="score-compare"><div><small>BEFORE</small><strong id="before-score">—</strong></div><span>→</span><div><small>AFTER</small><strong id="after-score">—</strong></div></div>
+      <div class="result-keywords"><div><small>Matched role language</small><p id="matched-words"></p></div><div><small>Review these gaps—add only if true</small><p id="missing-words"></p></div></div>
+      <button class="button" id="result-download">Download tailored DOCX ↓</button><button class="text-button" id="tailor-another">Tailor another résumé</button>
+    </div>
+    <div class="tailor-error" id="tailor-error" role="alert" hidden></div>
+  </div>
+</section>
+<section class="tailor-process">
+  <div><span class="section-number">01</span><h2>Professional tailoring,<br>with factual guardrails.</h2></div>
+  <div class="process-grid"><article><b>01</b><h3>Read the source</h3><p>ATSForge extracts selectable text from paragraphs and tables in your DOCX without creating a permanent résumé record.</p></article><article><b>02</b><h3>Map role language</h3><p>The job description is used as context. Missing keywords are never treated as proof that you possess a skill.</p></article><article><b>03</b><h3>Protect the evidence</h3><p>The AI prompt prohibits invented employers, credentials, tools, responsibilities, and results. New numbers trigger an automatic rejection.</p></article><article><b>04</b><h3>Export cleanly</h3><p>The result uses a single column, familiar headings, ordinary bullets, selectable text, and an editable Word format.</p></article></div>
+</section>
+<section class="tailor-disclosure"><div><h2>What this feature can—and cannot—do</h2><p>Tailoring can improve relevance, wording, hierarchy, and ATS readability. It cannot create experience you do not have, guarantee an interview, reproduce an employer's private screening system, or replace your final review. Always compare the downloaded document with your original before applying.</p></div><div><h3>Privacy and retention</h3><p>The uploaded file is read in memory for this request and is not intentionally saved to disk or a résumé database. When AI mode is enabled, extracted résumé text and the job description are sent to the configured Hugging Face inference provider for processing. Do not upload sensitive information you do not need in a job application.</p><a href="{{ url_for('content_page', slug='privacy-policy') }}">Read the Privacy Policy →</a></div></section>
+<script src="{{ url_for('static', filename='js/tailor.js') }}"></script>
+{% endblock %}

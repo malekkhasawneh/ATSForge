@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/ATSForge white bg.png') }}">
+  <meta name="description" content="Build a clean, tailored, ATS-ready resume and export it to Word.">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <meta property="og:type" content="website"><meta property="og:site_name" content="ATSForge">
+  <meta property="og:title" content="ATSForge — Free ATS Resume Builder">
+  <meta property="og:description" content="Create a clear, tailored, ATS-friendly resume and export it as an editable DOCX or text-based PDF.">
+  <meta property="og:image" content="{{ request.url_root.rstrip('/') }}{{ url_for('static', filename='img/og-atsforge.svg') }}">
+  <link rel="canonical" href="{{ url_for('home', _external=True) }}">
+  <title>Free ATS Resume Builder with DOCX and PDF Export | ATSForge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/content.css') }}">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"ATSForge","applicationCategory":"BusinessApplication","operatingSystem":"Web","description":"Free ATS-friendly resume builder with DOCX and PDF export","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#"><img src="{{ url_for('static', filename='img/ATSForge without bg.png') }}" alt="ATSForge logo" width="34" height="34"> ATSForge</a>
+    <nav aria-label="Primary"><a href="#builder">Builder</a><a class="nav-template-tab" href="{{ url_for('resume_template_selector') }}">Templates</a><a href="{{ url_for('resume_tailor_page') }}">Tailor DOCX</a><a href="{{ url_for('content_page', slug='ats-resume-guide') }}">ATS guide</a></nav>
+    <button class="button small" data-scroll="builder">Build my CV</button>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="eyebrow"><span></span> BUILT FOR PEOPLE AND PARSERS</div>
+      <h1>Your story, clearly<br><em>qualified.</em></h1>
+      <p>Create a focused, professional résumé that reads naturally, matches the role, and stays easy for applicant tracking systems to parse.</p>
+      <div class="hero-actions"><button class="button" data-scroll="builder">Start building <span>→</span></button><a class="secondary-link" href="{{ url_for('resume_tailor_page') }}">Tailor an existing DOCX →</a><span class="quiet">No sign-up. Your data stays in your browser.</span></div>
+      <div class="proof"><div><strong>Single column</strong><small>Predictable reading order</small></div><div><strong>Role tailored</strong><small>Keyword gap analysis</small></div><div><strong>Word export</strong><small>Clean, editable DOCX</small></div></div>
+    </section>
+
+    <section class="workspace" id="builder">
+      <div class="workspace-head">
+        <div><span class="section-number">01</span><h2>Build your résumé</h2></div>
+        <p>Complete what matters. The preview and ATS review update as you type.</p>
+      </div>
+      <div class="app-shell">
+        <aside class="steps" aria-label="Resume sections">
+          <button class="step active" data-step="basics"><span>1</span><b>Profile</b><small>Contact & summary</small></button>
+          <button class="step" data-step="experience"><span>2</span><b>Experience</b><small>Roles & impact</small></button>
+          <button class="step" data-step="education"><span>3</span><b>Education</b><small>Study & training</small></button>
+          <button class="step" data-step="skills"><span>4</span><b>Skills</b><small>Capabilities</small></button>
+          <button class="step" data-step="target"><span>5</span><b>Target role</b><small>Tailor & review</small></button>
+          <a class="template-switch" href="{{ url_for('resume_template_selector') }}"><span>▤</span><p><b id="active-template-name">Professional</b><small>Change template →</small></p></a>
+          <div class="privacy"><span>⌁</span><p><b>Private by design</b><br>Your draft is stored locally, not in a database.</p></div>
+        </aside>
+
+        <section class="editor">
+          <form id="resume-form">
+            <input type="hidden" name="template" value="professional">
+            <div class="panel active" data-panel="basics">
+              <div class="panel-title"><div><small>STEP 1 OF 5</small><h3>Introduce yourself</h3></div><span class="status-dot">Draft saved</span></div>
+              <div class="grid two"><label>Full name<input name="name" autocomplete="name" placeholder="e.g. Maya Haddad"></label><label>Professional title<input name="title" placeholder="e.g. Product Designer"></label></div>
+              <div class="grid two"><label>Email<input type="email" name="email" autocomplete="email" placeholder="maya@example.com"></label><label>Phone<input name="phone" autocomplete="tel" placeholder="+962 7 9000 0000"></label></div>
+              <div class="grid two"><label>Location<input name="location" autocomplete="address-level2" placeholder="Amman, Jordan"></label><label>LinkedIn / portfolio<input name="linkedin" placeholder="linkedin.com/in/yourname"></label></div>
+              <label>Professional summary <span class="hint">Aim for 3–4 specific lines</span><textarea name="summary" rows="5" placeholder="Product designer with 6 years of experience turning complex workflows into accessible digital products..."></textarea></label>
+              <div class="writing-tip"><b>Make it credible</b><p>Name your field, experience level, strongest capabilities, and the kind of value you create. Avoid generic claims such as “hard-working team player.”</p></div>
+            </div>
+
+            <div class="panel" data-panel="experience">
+              <div class="panel-title"><div><small>STEP 2 OF 5</small><h3>Show your impact</h3></div><button type="button" class="text-button" data-add="experience">+ Add role</button></div>
+              <div id="experience-list" class="repeat-list"></div>
+              <div class="writing-tip"><b>Write evidence, not duties</b><p>Start with a strong verb, describe what changed, then quantify the result where truthful. Never invent a metric.</p></div>
+            </div>
+
+            <div class="panel" data-panel="education">
+              <div class="panel-title"><div><small>STEP 3 OF 5</small><h3>Add your education</h3></div><button type="button" class="text-button" data-add="education">+ Add education</button></div>
+              <div id="education-list" class="repeat-list"></div>
+              <h4>Selected projects <button type="button" class="text-button" data-add="projects">+ Add project</button></h4>
+              <div id="projects-list" class="repeat-list compact"></div>
+            </div>
+
+            <div class="panel" data-panel="skills">
+              <div class="panel-title"><div><small>STEP 4 OF 5</small><h3>Map your capabilities</h3></div></div>
+              <label>Core skills <span class="hint">Separate with commas</span><textarea name="skills" rows="5" placeholder="Product strategy, User research, Figma, Design systems, Accessibility"></textarea></label>
+              <label>Languages <span class="hint">Include proficiency</span><input name="languages" placeholder="Arabic — Native, English — Professional"></label>
+              <div class="writing-tip"><b>Keep it relevant</b><p>Use recognized names for tools and methods. Prioritize skills that appear in your target job and that your experience can support.</p></div>
+            </div>
+
+            <div class="panel" data-panel="target">
+              <div class="panel-title"><div><small>STEP 5 OF 5</small><h3>Tailor to the opportunity</h3></div></div>
+              <label>Job description <span class="hint">Paste the full posting</span><textarea name="job_description" rows="12" placeholder="Paste the role description here to compare its important language with your résumé..."></textarea></label>
+              <div class="ats-card"><div class="score-ring" id="score-ring"><span id="score">—</span><small>ATS</small></div><div><h4>Readiness review</h4><p id="score-message">Add your details and a job description to see focused feedback.</p><div class="chips" id="keyword-chips"></div></div></div>
+            </div>
+          </form>
+          <div class="editor-footer"><button type="button" class="back text-button">← Back</button><span id="step-count">1 / 5</span><button type="button" class="button next">Continue →</button></div>
+        </section>
+
+        <aside class="preview-wrap">
+          <div class="preview-toolbar"><span>LIVE PREVIEW</span><div class="download-actions"><button id="download-docx" title="Download editable Word document">DOCX ↓</button><button id="download-pdf" title="Download PDF document">PDF ↓</button></div></div>
+          <article class="resume" id="resume-preview" aria-label="Resume preview"></article>
+          <p class="preview-note">A clean, single-column document with standard section names.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="principles" id="principles">
+      <div><span class="section-number">02</span><h2>Clarity is the standard.</h2><p>There is no universal “ATS score.” Clear structure and honest relevance matter more than keyword stuffing.</p></div>
+      <div class="principle-grid"><article><span>01</span><h3>Use familiar sections</h3><p>Experience, Education, and Skills make information easy to locate.</p></article><article><span>02</span><h3>Match language honestly</h3><p>Use the employer’s terminology when it accurately describes your background.</p></article><article><span>03</span><h3>Prove the outcome</h3><p>Specific scope and measured results make bullets credible and memorable.</p></article></div>
+    </section>
+  </main>
+  {% include "partials/footer.html" %}
+
+  <template id="experience-template"><fieldset class="repeat-card"><button type="button" class="remove" aria-label="Remove">×</button><div class="grid two"><label>Job title<input data-field="title" placeholder="Senior Product Designer"></label><label>Company<input data-field="company" placeholder="Northstar Labs"></label></div><div class="grid three"><label>Location<input data-field="location" placeholder="Amman / Remote"></label><label>Start<input data-field="start" placeholder="Mar 2022"></label><label>End<input data-field="end" placeholder="Present"></label></div><label>Achievements <span class="hint">One bullet per line</span><textarea data-field="highlights" rows="6" placeholder="Led the redesign of...&#10;Reduced onboarding time by..."></textarea></label></fieldset></template>
+  <template id="education-template"><fieldset class="repeat-card"><button type="button" class="remove" aria-label="Remove">×</button><div class="grid two"><label>Degree / certificate<input data-field="degree" placeholder="B.Sc. Computer Science"></label><label>Institution<input data-field="school" placeholder="University of Jordan"></label></div><div class="grid three"><label>Location<input data-field="location" placeholder="Amman"></label><label>Start<input data-field="start" placeholder="2017"></label><label>End<input data-field="end" placeholder="2021"></label></div><label>Details<input data-field="details" placeholder="Honors, relevant coursework, or distinction"></label></fieldset></template>
+  <template id="projects-template"><fieldset class="repeat-card"><button type="button" class="remove" aria-label="Remove">×</button><div class="grid two"><label>Project name<input data-field="name" placeholder="Accessible Design System"></label><label>Link<input data-field="link" placeholder="github.com/..."></label></div><label>Description<textarea data-field="description" rows="3" placeholder="Built... resulting in..."></textarea></label></fieldset></template>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

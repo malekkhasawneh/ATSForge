@@ -1,0 +1,4 @@
+{% set page = {'title': 'Page not found', 'description': 'The requested ATSForge page could not be found.', 'faq': []} %}
+{% set schema = {'@context': 'https://schema.org', '@type': 'WebPage', 'name': 'Page not found'} %}
+{% extends "base.html" %}
+{% block content %}<section class="article-hero"><p class="eyebrow"><span></span>404</p><h1>That page is not here.</h1><p class="article-intro">The address may have changed. Continue to the resume builder or explore our practical resume guides.</p><p><a class="button" href="{{ url_for('home') }}">Return home</a> <a class="button" href="{{ url_for('content_page', slug='ats-resume-guide') }}">Read the ATS guide</a></p></section>{% endblock %}

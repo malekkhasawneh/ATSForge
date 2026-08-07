@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/ATSForge white bg.png') }}">
+  <title>{{ page.title }} | ATSForge</title>
+  <meta name="description" content="{{ page.description }}">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <link rel="canonical" href="{{ request.url_root.rstrip('/') }}{{ request.path }}">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="ATSForge">
+  <meta property="og:title" content="{{ page.title }} | ATSForge">
+  <meta property="og:description" content="{{ page.description }}">
+  <meta property="og:url" content="{{ request.url_root.rstrip('/') }}{{ request.path }}">
+  <meta property="og:image" content="{{ request.url_root.rstrip('/') }}{{ url_for('static', filename='img/og-atsforge.svg') }}">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/content.css') }}">
+  {% block extra_head %}{% endblock %}
+  <script type="application/ld+json">{{ schema|tojson }}</script>
+  {% if page.faq %}<script type="application/ld+json">{{ faq_schema|tojson }}</script>{% endif %}
+</head>
+<body>
+  <header class="topbar content-topbar">
+    <a class="brand" href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='img/ATSForge without bg.png') }}" alt="ATSForge logo" width="34" height="34"> ATSForge</a>
+    <nav aria-label="Primary"><a href="{{ url_for('resume_tailor_page') }}">Tailor Resume</a><a href="{{ url_for('content_page', slug='ats-resume-guide') }}">Guides</a><a href="{{ url_for('resume_template_selector') }}">Templates</a><a href="{{ url_for('content_page', slug='pricing') }}">Pricing</a><a href="{{ url_for('content_page', slug='about') }}">About</a></nav>
+    <a class="button small" href="{{ url_for('home') }}#builder">Build my CV</a>
+  </header>
+  <main>{% block content %}{% endblock %}</main>
+  {% include "partials/footer.html" %}
+</body>
+</html>
