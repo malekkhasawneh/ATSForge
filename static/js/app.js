@@ -38,8 +38,13 @@ function render(data) {
   const b = data.basics;
   const preview = $('#resume-preview');
   preview.className = `resume template-${data.template || 'professional'}`;
-  if (!b.name && !b.summary && !data.experience.length && !data.skills.length) {
-    preview.innerHTML = '<div class="empty-preview"><b>Your résumé will appear here.</b><span>Start with your name and professional summary.</span></div>'; return;
+  const hasEntry = entries => entries.some(entry => Object.values(entry).some(value => String(value || '').trim()));
+  const hasContent = Boolean(
+    b.name || b.title || b.summary || data.skills.length || data.languages.length ||
+    hasEntry(data.experience) || hasEntry(data.education) || hasEntry(data.projects)
+  );
+  if (!hasContent) {
+    preview.innerHTML = '<div class="empty-preview"><span class="empty-preview-icon">✦</span><b>Your CV preview will appear here</b><span>Start with your name and professional summary. It updates as you type.</span><div class="empty-preview-lines" aria-hidden="true"><i></i><i></i><i></i></div></div>'; return;
   }
   const contact = [b.location, b.phone, b.email, b.linkedin].filter(Boolean).map(esc).join(' &nbsp;|&nbsp; ');
   const exp = data.experience.filter(x => Object.values(x).some(Boolean)).map(x => {
