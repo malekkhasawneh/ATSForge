@@ -6,15 +6,18 @@
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/ATSForge white bg.png') }}">
   <title>{{ page.title }} | ATSForge</title>
   <meta name="description" content="{{ page.description }}">
-  <meta name="robots" content="index, follow, max-image-preview:large">
-  <link rel="canonical" href="{{ request.url_root.rstrip('/') }}{{ request.path }}">
+  <meta name="robots" content="{% if page.noindex %}noindex, nofollow{% else %}index, follow, max-image-preview:large{% endif %}">
+  <link rel="canonical" href="{{ site_url }}{{ request.path }}">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="ATSForge">
   <meta property="og:title" content="{{ page.title }} | ATSForge">
   <meta property="og:description" content="{{ page.description }}">
-  <meta property="og:url" content="{{ request.url_root.rstrip('/') }}{{ request.path }}">
-  <meta property="og:image" content="{{ request.url_root.rstrip('/') }}{{ url_for('static', filename='img/og-atsforge.svg') }}">
+  <meta property="og:url" content="{{ site_url }}{{ request.path }}">
+  <meta property="og:image" content="{{ site_url }}{{ url_for('static', filename='img/og-atsforge.svg') }}">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ page.title }} | ATSForge">
+  <meta name="twitter:description" content="{{ page.description }}">
+  {% if google_site_verification %}<meta name="google-site-verification" content="{{ google_site_verification }}">{% endif %}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">

@@ -39,6 +39,18 @@ python app.py
 
 The token is read only on the server and must never be placed in browser JavaScript or committed to source control. Provider routing and billing depend on the Hugging Face account. The application sends extracted resume text and the job description to the configured provider only in AI mode.
 
+## Production SEO configuration
+
+Set these Railway environment variables before connecting the custom domain:
+
+```bash
+SITE_URL="https://www.example.com"
+GOOGLE_SITE_VERIFICATION="Google Search Console verification token"
+ADS_ENABLED="false"
+```
+
+`SITE_URL` is the single public origin used by canonical tags, Open Graph URLs, JSON-LD, `sitemap.xml`, and `robots.txt`. Do not include a trailing slash. Leave `GOOGLE_SITE_VERIFICATION` empty until Search Console provides a token; no tag is rendered when it is absent. `ADS_ENABLED` is false by default and does not load any advertising script.
+
 ## Design and research basis
 
 The implementation follows guidance from the USC Career Center, CareerOneStop, UCLA Career Center, and patterns found in open-source Hugging Face résumé-tailoring Spaces. The product deliberately avoids columns, tables, graphics, photos, and keyword stuffing. Its score is a transparent readiness indicator—not a claim to reproduce any employer's private ATS.

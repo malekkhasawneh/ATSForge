@@ -28,6 +28,15 @@ from resume_tailor import (TailorError, ai_tailor, create_fallback_docx, extract
 
 app = Flask(__name__)
 
+
+def site_url() -> str:
+    """Return the configured public origin without trusting request headers."""
+    return os.getenv("SITE_URL", "http://127.0.0.1:5000").strip().rstrip("/")
+
+
+def public_url(path: str = "/") -> str:
+    return f"{site_url()}{path if path.startswith('/') else '/' + path}"
+
 STOP_WORDS = {
     "a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "has",
     "have", "in", "is", "it", "of", "on", "or", "our", "that", "the", "their",
@@ -303,7 +312,20 @@ def create_pdf(data: dict[str, Any]) -> io.BytesIO:
 
 @app.get("/")
 def home():
-    return render_template("index.html")
+    page_data = {
+        "title": "Free ATS Resume Builder with DOCX and PDF Export",
+        "description": "Build a clear, ATS-friendly resume, compare it with a job description, and export an editable DOCX or text-based PDF.",
+        "faq": [],
+    }
+    schema = {
+        "@context": "https://schema.org", "@graph": [
+            {"@type": "WebSite", "name": "ATSForge", "url": public_url()},
+            {"@type": "WebApplication", "name": "ATSForge", "applicationCategory": "BusinessApplication",
+             "operatingSystem": "Web", "url": public_url(), "description": page_data["description"],
+             "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}},
+        ],
+    }
+    return render_template("index.html", page=page_data, schema=schema)
 
 
 @app.get("/resume-tailor")
@@ -318,6 +340,7 @@ def resume_tailor_page():
         "applicationCategory": "BusinessApplication", "operatingSystem": "Web",
         "description": "Tailor an existing DOCX resume to a job description with ATS-readable formatting.",
         "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+        "url": public_url("/resume-tailor"),
     }
     return render_template("resume_tailor.html", page=page_data, schema=schema,
                            ai_configured=bool(os.getenv("HF_TOKEN", "").strip()))
@@ -333,6 +356,7 @@ def resume_template_selector():
     schema = {
         "@context": "https://schema.org", "@type": "CollectionPage", "name": page_data["title"],
         "description": page_data["description"], "mainEntity": {"@type": "ItemList", "numberOfItems": len(RESUME_TEMPLATES)},
+        "url": public_url("/resume-templates"),
     }
     return render_template("template_selector.html", page=page_data, schema=schema, templates=RESUME_TEMPLATES)
 
@@ -390,7 +414,13 @@ def tailor_resume_upload():
 
 @app.context_processor
 def public_navigation():
-    return {"all_pages": ALL_PAGES, "nav_groups": NAV_GROUPS}
+    return {
+        "all_pages": ALL_PAGES,
+        "nav_groups": NAV_GROUPS,
+        "site_url": site_url(),
+        "ads_enabled": os.getenv("ADS_ENABLED", "false").lower() == "true",
+        "google_site_verification": os.getenv("GOOGLE_SITE_VERIFICATION", "").strip(),
+    }
 
 
 @app.get("/resources/<slug>")
@@ -401,13 +431,19 @@ def content_page(slug: str):
     words = " ".join([page_data["intro"]] + [f"{heading} {body}" for heading, body in page_data["sections"]]
                      + [f"{question} {answer}" for question, answer in page_data.get("faq", [])])
     word_count = len(re.findall(r"\b[\w’'-]+\b", words))
+    page_url = public_url(f"/resources/{slug}")
     schema = {
-        "@context": "https://schema.org", "@type": "Article",
-        "headline": page_data["title"], "description": page_data["description"],
-        "dateModified": "2026-08-06", "datePublished": "2026-08-06",
-        "author": {"@type": "Organization", "name": "ATSForge"},
-        "publisher": {"@type": "Organization", "name": "ATSForge"},
-        "mainEntityOfPage": request.url,
+        "@context": "https://schema.org", "@graph": [
+            {"@type": "Article", "headline": page_data["title"], "description": page_data["description"],
+             "dateModified": "2026-08-08", "datePublished": "2026-08-06",
+             "author": {"@type": "Organization", "name": "ATSForge"},
+             "publisher": {"@type": "Organization", "name": "ATSForge"}, "mainEntityOfPage": page_url},
+            {"@type": "BreadcrumbList", "itemListElement": [
+                {"@type": "ListItem", "position": 1, "name": "Home", "item": public_url()},
+                {"@type": "ListItem", "position": 2, "name": page_data["category"], "item": page_url},
+                {"@type": "ListItem", "position": 3, "name": page_data["title"], "item": page_url},
+            ]},
+        ],
     }
     faq_schema = None
     if page_data.get("faq"):
@@ -421,8 +457,9 @@ def content_page(slug: str):
 
 @app.get("/sitemap.xml")
 def sitemap():
-    urls = [url_for("home", _external=True), url_for("resume_tailor_page", _external=True),
-            url_for("resume_template_selector", _external=True)] + [url_for("content_page", slug=slug, _external=True) for slug in ALL_PAGES]
+    urls = [public_url(), public_url("/resume-tailor"), public_url("/resume-templates")] + [
+        public_url(f"/resources/{slug}") for slug in ALL_PAGES
+    ]
     body = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">" + "".join(
         f"<url><loc>{url}</loc><lastmod>2026-08-06</lastmod></url>" for url in urls) + "</urlset>"
     return app.response_class(body, mimetype="application/xml")
@@ -430,7 +467,23 @@ def sitemap():
 
 @app.get("/robots.txt")
 def robots():
-    return app.response_class(f"User-agent: *\nAllow: /\nSitemap: {url_for('sitemap', _external=True)}\n", mimetype="text/plain")
+    body = "\n".join([
+        "User-agent: *", "Allow: /", "Disallow: /api/", "Disallow: /health",
+        f"Sitemap: {public_url('/sitemap.xml')}", "",
+    ])
+    return app.response_class(body, mimetype="text/plain")
+
+
+@app.errorhandler(404)
+def not_found(_error):
+    return render_template("404.html"), 404
+
+
+@app.after_request
+def set_response_headers(response):
+    if request.path.startswith("/static/"):
+        response.headers["Cache-Control"] = "public, max-age=604800"
+    return response
 
 
 @app.post("/api/analyze")
