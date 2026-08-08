@@ -28,8 +28,7 @@ function collect() {
     basics: {name: val('name'), title: val('title'), email: val('email'), phone: val('phone'), location: val('location'), linkedin: val('linkedin'), summary: val('summary')},
     experience: repeated('experience'), education: repeated('education'), projects: repeated('projects'),
     skills: val('skills').split(',').map(x => x.trim()).filter(Boolean),
-    languages: val('languages').split(',').map(x => x.trim()).filter(Boolean),
-    job_description: val('job_description')
+    languages: val('languages').split(',').map(x => x.trim()).filter(Boolean)
   };
 }
 
@@ -61,22 +60,7 @@ async function analyze(data) {
     $('#score').textContent = analysis.score;
     $('#score-ring').style.borderTopColor = analysis.score >= 75 ? '#235f47' : analysis.score >= 50 ? '#c58b31' : '#a9584b';
     const passed = Object.values(analysis.checks).filter(Boolean).length;
-    const hasJobMatch = Number.isInteger(analysis.match_ratio);
-    const matchText = hasJobMatch ? `${analysis.match_ratio}%` : '—';
-    $('#job-match-ratio').textContent = matchText;
-    $('#match-ratio-note').textContent = hasJobMatch
-      ? `${analysis.matched.length} of ${analysis.keywords.length} selected role terms found in your CV.`
-      : 'Paste a job description to compare role language.';
-    $$('[data-match-step]').forEach(el => {
-      const ratio = analysis.section_match_ratio?.[el.dataset.matchStep];
-      el.textContent = Number.isInteger(ratio) ? `JD match ${ratio}%` : 'JD match —';
-    });
-    $('#score-message').textContent = hasJobMatch
-      ? `${passed} of ${Object.keys(analysis.checks).length} quality checks passed. ${analysis.missing.length ? 'Review unmatched role language below—only add it when your experience supports it.' : 'Your selected role language is well represented.'}`
-      : `${passed} of ${Object.keys(analysis.checks).length} quality checks passed. Add the full job description for a separate match ratio.`;
-    $('#keyword-chips').innerHTML = hasJobMatch
-      ? [...analysis.matched.slice(0,5).map(k=>`<span class="chip">✓ ${esc(k)}</span>`), ...analysis.missing.slice(0,5).map(k=>`<span class="chip missing">+ ${esc(k)}</span>`)].join('')
-      : '';
+    $('#score-message').textContent = `${passed} of ${Object.keys(analysis.checks).length} quality checks passed. Add clear, truthful evidence before exporting.`;
   } catch (_) { /* Preview remains useful if server analysis is unavailable. */ }
 }
 
@@ -120,7 +104,7 @@ function restore() {
   const validTemplates = ['professional','modern','minimal','executive'];
   if (!draft) { addItem('experience'); addItem('education'); $('[name="template"]').value = validTemplates.includes(requestedTemplate) ? requestedTemplate : 'professional'; updateTemplateLabel(); return changed(); }
   Object.entries(draft.basics || {}).forEach(([key,value]) => { const el=$(`[name="${key}"]`); if(el) el.value=value; });
-  $('[name="skills"]').value=(draft.skills||[]).join(', '); $('[name="languages"]').value=(draft.languages||[]).join(', '); $('[name="job_description"]').value=draft.job_description||'';
+  $('[name="skills"]').value=(draft.skills||[]).join(', '); $('[name="languages"]').value=(draft.languages||[]).join(', ');
   $('[name="template"]').value = validTemplates.includes(requestedTemplate) ? requestedTemplate : (validTemplates.includes(draft.template) ? draft.template : 'professional'); updateTemplateLabel();
   ['experience','education','projects'].forEach(type => (draft[type] || []).forEach(item => addItem(type,item)));
   if (!draft.experience?.length) addItem('experience'); if (!draft.education?.length) addItem('education'); changed();

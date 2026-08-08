@@ -4,7 +4,6 @@ import io
 import json
 import os
 import re
-from collections import Counter
 from copy import deepcopy
 from datetime import datetime
 from typing import Any
@@ -77,16 +76,6 @@ def page_with_site_details(page_data: dict[str, Any]) -> dict[str, Any]:
 
     return replace(deepcopy(page_data))
 
-STOP_WORDS = {
-    "a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "has",
-    "have", "in", "is", "it", "of", "on", "or", "our", "that", "the", "their",
-    "this", "to", "we", "will", "with", "you", "your", "who", "using", "work",
-    "job", "role", "team", "years", "including", "required", "preferred",
-    "need", "needs", "seeking", "looking", "position", "opportunity", "candidate",
-    "candidates", "qualification", "qualifications", "include", "includes", "building",
-    "build", "built", "responsibility", "responsibilities", "must", "should",
-}
-
 ACTION_VERBS = [
     "Accelerated", "Achieved", "Built", "Coordinated", "Delivered", "Designed",
     "Developed", "Directed", "Enhanced", "Implemented", "Improved", "Launched",
@@ -105,30 +94,6 @@ def clean(value: Any, limit: int = 5000) -> str:
     return re.sub(r"\s+", " ", str(value or "")).strip()[:limit]
 
 
-def keyword_list(text: str, limit: int = 18) -> list[str]:
-    words = [word.rstrip("./-") for word in re.findall(r"[A-Za-z][A-Za-z0-9+#.\-/]{1,30}", text.lower())]
-    counts = Counter(w for w in words if w not in STOP_WORDS and len(w) > 2)
-    return [word for word, _ in counts.most_common(limit)]
-
-
-def contains_term(text: str, term: str) -> bool:
-    """Match role terms without treating part of a longer word as a match."""
-    return bool(re.search(rf"(?<!\w){re.escape(term)}(?!\w)", text.casefold()))
-
-
-def job_match_ratio(terms: list[str], text: str) -> tuple[int | None, list[str]]:
-    """Return transparent coverage of selected job-description terms.
-
-    This is a relevance signal, not a claim to reproduce an employer's ATS or
-    predict a hiring outcome. A term is counted only when it already appears in
-    user-provided resume content.
-    """
-    if not terms:
-        return None, []
-    matched = [term for term in terms if contains_term(text, term)]
-    return round(100 * len(matched) / len(terms)), matched
-
-
 def normalize_items(items: Any, fields: list[str], max_items: int = 10) -> list[dict[str, str]]:
     if not isinstance(items, list):
         return []
@@ -143,7 +108,6 @@ def normalize_items(items: Any, fields: list[str], max_items: int = 10) -> list[
 
 def build_resume(payload: dict[str, Any]) -> dict[str, Any]:
     basics = payload.get("basics") if isinstance(payload.get("basics"), dict) else {}
-    job_description = clean(payload.get("job_description"), 12000)
     data = {
         "template": clean(payload.get("template"), 30) if clean(payload.get("template"), 30) in RESUME_TEMPLATES else "professional",
         "basics": {key: clean(basics.get(key), 300) for key in
@@ -153,59 +117,31 @@ def build_resume(payload: dict[str, Any]) -> dict[str, Any]:
         "projects": normalize_items(payload.get("projects"), ["name", "link", "description"]),
         "skills": [clean(x, 80) for x in payload.get("skills", [])[:40] if clean(x, 80)] if isinstance(payload.get("skills"), list) else [],
         "languages": [clean(x, 80) for x in payload.get("languages", [])[:12] if clean(x, 80)] if isinstance(payload.get("languages"), list) else [],
-        "job_description": job_description,
     }
     return data
 
 
 def ats_analysis(data: dict[str, Any]) -> dict[str, Any]:
     basics = data["basics"]
-    section_text = {
-        "basics": " ".join([basics.get("title", ""), basics.get("summary", "")]),
-        "experience": " ".join(
-            " ".join(item.get(field, "") for field in ("title", "highlights"))
-            for item in data["experience"]
-        ),
-        "education": " ".join(
-            " ".join(item.get(field, "") for field in ("degree", "details"))
-            for item in data["education"]
-        ),
-        "skills": " ".join(data["skills"] + data["languages"]),
-        "projects": " ".join(
-            " ".join(item.get(field, "") for field in ("name", "description"))
-            for item in data["projects"]
-        ),
-    }
-    searchable = " ".join(section_text.values())
-    keywords = keyword_list(data["job_description"])
-    match_ratio, matched = job_match_ratio(keywords, searchable)
-    missing = [term for term in keywords if term not in matched]
-    section_match_ratio = {
-        section: job_match_ratio(keywords, text)[0]
-        for section, text in section_text.items()
-    }
-    section_match_ratio["target"] = match_ratio
+    searchable = " ".join([
+        basics.get("title", ""), basics.get("summary", ""), " ".join(data["skills"]),
+        " ".join(data["languages"]), " ".join(x.get("title", "") for x in data["experience"]),
+        " ".join(x.get("highlights", "") for x in data["experience"]),
+        " ".join(x.get("degree", "") for x in data["education"]),
+        " ".join(x.get("details", "") for x in data["education"]),
+        " ".join(x.get("description", "") for x in data["projects"]),
+    ])
     checks = {
         "Contact details": bool(basics.get("email") and basics.get("phone")),
         "Professional summary": len(basics.get("summary", "").split()) >= 20,
         "Work experience": bool(data["experience"]),
         "Measurable impact": bool(re.search(r"\b\d+(?:[.,]\d+)?%?|\$\d+", searchable)),
         "Relevant skills": len(data["skills"]) >= 5,
-        "Job tailoring": match_ratio is None or match_ratio >= 35,
     }
-    completeness = sum(checks.values()) / len(checks) * 55
-    keyword_score = (match_ratio * .35) if match_ratio is not None else 20
-    clarity = 10 if all(len(x.get("highlights", "").split()) <= 100 for x in data["experience"]) else 5
-    score = min(100, round(completeness + keyword_score + clarity))
-    return {
-        "score": score,
-        "checks": checks,
-        "matched": matched,
-        "missing": missing[:10],
-        "keywords": keywords,
-        "match_ratio": match_ratio,
-        "section_match_ratio": section_match_ratio,
-    }
+    completeness = sum(checks.values()) / len(checks) * 80
+    clarity = 20 if all(len(x.get("highlights", "").split()) <= 100 for x in data["experience"]) else 10
+    score = min(100, round(completeness + clarity))
+    return {"score": score, "checks": checks}
 
 
 def set_bottom_border(paragraph, color: str = "555555", size: str = "6") -> None:

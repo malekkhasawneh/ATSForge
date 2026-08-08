@@ -27,7 +27,7 @@
 <body>
   <header class="topbar">
     <a class="brand" href="#"><img src="{{ url_for('static', filename='img/ATSForge without bg.png') }}" alt="ATSForge logo" width="34" height="34"> ATSForge</a>
-    <nav aria-label="Primary"><a href="#builder">Builder</a><a class="nav-template-tab" href="{{ url_for('resume_template_selector') }}">Templates</a><a href="{{ url_for('resume_tailor_page') }}">Tailor DOCX</a><a href="{{ url_for('content_page', slug='ats-resume-guide') }}">ATS guide</a></nav>
+    <nav aria-label="Primary"><a href="#builder">Builder</a><a class="nav-template-tab" href="{{ url_for('resume_template_selector') }}">Templates</a><a href="{{ url_for('resume_tailor_page') }}">Tailor Resume</a><a href="{{ url_for('content_page', slug='ats-resume-guide') }}">ATS guide</a></nav>
     <button class="button small" data-scroll="builder">Build my CV</button>
   </header>
 
@@ -36,8 +36,8 @@
       <div class="eyebrow"><span></span> BUILT FOR PEOPLE AND PARSERS</div>
       <h1>Your story, clearly<br><em>qualified.</em></h1>
       <p>Create a focused, professional résumé that reads naturally, matches the role, and stays easy for applicant tracking systems to parse.</p>
-      <div class="hero-actions"><button class="button" data-scroll="builder">Start building <span>→</span></button><a class="secondary-link" href="{{ url_for('resume_tailor_page') }}">Tailor an existing DOCX →</a><span class="quiet">No sign-up. Your data stays in your browser.</span></div>
-      <div class="proof"><div><strong>Single column</strong><small>Predictable reading order</small></div><div><strong>Role tailored</strong><small>Keyword gap analysis</small></div><div><strong>Word export</strong><small>Clean, editable DOCX</small></div></div>
+      <div class="hero-actions"><button class="button" data-scroll="builder">Start building <span>→</span></button><a class="secondary-link" href="{{ url_for('resume_tailor_page') }}">Tailor my resume →</a><span class="quiet">No sign-up. Your data stays in your browser.</span></div>
+      <div class="proof"><div><strong>Single column</strong><small>Predictable reading order</small></div><div><strong>Quality review</strong><small>Clear, credible content</small></div><div><strong>Word export</strong><small>Clean, editable DOCX</small></div></div>
     </section>
 
     <section class="workspace" id="builder">
@@ -47,11 +47,11 @@
       </div>
       <div class="app-shell">
         <aside class="steps" aria-label="Resume sections">
-          <button class="step active" data-step="basics"><span>1</span><b>Profile</b><small>Contact & summary</small><em class="step-match" data-match-step="basics">JD match —</em></button>
-          <button class="step" data-step="experience"><span>2</span><b>Experience</b><small>Roles & impact</small><em class="step-match" data-match-step="experience">JD match —</em></button>
-          <button class="step" data-step="education"><span>3</span><b>Education</b><small>Study & training</small><em class="step-match" data-match-step="education">JD match —</em></button>
-          <button class="step" data-step="skills"><span>4</span><b>Skills</b><small>Capabilities</small><em class="step-match" data-match-step="skills">JD match —</em></button>
-          <button class="step" data-step="target"><span>5</span><b>Target role</b><small>Tailor & review</small><em class="step-match" data-match-step="target">JD match —</em></button>
+          <button class="step active" data-step="basics"><span>1</span><b>Profile</b><small>Contact & summary</small></button>
+          <button class="step" data-step="experience"><span>2</span><b>Experience</b><small>Roles & impact</small></button>
+          <button class="step" data-step="education"><span>3</span><b>Education</b><small>Study & training</small></button>
+          <button class="step" data-step="skills"><span>4</span><b>Skills</b><small>Capabilities</small></button>
+          <button class="step" data-step="target"><span>5</span><b>Final review</b><small>Check your CV</small></button>
           <a class="template-switch" href="{{ url_for('resume_template_selector') }}"><span>▤</span><p><b id="active-template-name">Professional</b><small>Change template →</small></p></a>
           <div class="privacy"><span>⌁</span><p><b>Private by design</b><br>Your draft is stored locally, not in a database.</p></div>
         </aside>
@@ -89,13 +89,8 @@
             </div>
 
             <div class="panel" data-panel="target">
-              <div class="panel-title"><div><small>STEP 5 OF 5</small><h3>Tailor to the opportunity</h3></div></div>
-              <label>Job description <span class="hint">Paste the full posting</span><textarea name="job_description" rows="12" placeholder="Paste the role description here to compare its important language with your résumé..."></textarea></label>
-              <div class="ats-card">
-                <div class="score-ring" id="score-ring"><span id="score">—</span><small>READINESS</small></div>
-                <div class="match-ratio" aria-live="polite"><strong id="job-match-ratio">—</strong><small>JOB MATCH</small><span id="match-ratio-note">Paste a job description to compare role language.</span></div>
-                <div><h4>Readiness review</h4><p id="score-message">Add your details and a job description to see focused feedback.</p><div class="chips" id="keyword-chips"></div></div>
-              </div>
+              <div class="panel-title"><div><small>STEP 5 OF 5</small><h3>Review your CV</h3></div></div>
+              <div class="ats-card"><div class="score-ring" id="score-ring"><span id="score">—</span><small>READINESS</small></div><div><h4>CV readiness review</h4><p id="score-message">Complete your details to see focused quality feedback.</p></div></div>
             </div>
           </form>
           <div class="editor-footer"><button type="button" class="back text-button">← Back</button><span id="step-count">1 / 5</span><button type="button" class="button next">Continue →</button></div>
