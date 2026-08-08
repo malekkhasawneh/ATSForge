@@ -31,7 +31,7 @@ app = Flask(__name__)
 
 def site_url() -> str:
     """Return the configured public origin without trusting request headers."""
-    return os.getenv("SITE_URL", "http://127.0.0.1:5000").strip().rstrip("/")
+    return os.getenv("SITE_URL", "https://atsforge.org").strip().rstrip("/")
 
 
 def public_url(path: str = "/") -> str:
