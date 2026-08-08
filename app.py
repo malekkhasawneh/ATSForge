@@ -28,6 +28,8 @@ from resume_tailor import (TailorError, ai_tailor, create_fallback_docx, extract
 
 app = Flask(__name__)
 
+ADS_TXT_RECORD = "google.com, pub-2767727782899451, DIRECT, f08c47fec0942fa0\n"
+
 
 def site_url() -> str:
     """Return the configured public origin without trusting request headers."""
@@ -497,6 +499,12 @@ def robots():
         f"Sitemap: {public_url('/sitemap.xml')}", "",
     ])
     return app.response_class(body, mimetype="text/plain")
+
+
+@app.get("/ads.txt")
+def ads_txt():
+    """Declare ATSForge's authorized Google AdSense seller record."""
+    return app.response_class(ADS_TXT_RECORD, mimetype="text/plain")
 
 
 @app.errorhandler(404)
