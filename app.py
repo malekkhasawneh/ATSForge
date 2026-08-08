@@ -5,6 +5,7 @@ import json
 import os
 import re
 from collections import Counter
+from copy import deepcopy
 from datetime import datetime
 from typing import Any
 
@@ -37,11 +38,53 @@ def site_url() -> str:
 def public_url(path: str = "/") -> str:
     return f"{site_url()}{path if path.startswith('/') else '/' + path}"
 
+
+def configured_text(name: str, default: str = "") -> str:
+    """Read a short display setting without allowing markup in templates."""
+    return re.sub(r"[<>]", "", os.getenv(name, default)).strip()
+
+
+def site_contact_details() -> dict[str, str]:
+    """Return public support and operator details configured for the live site."""
+    return {
+        "support_email": configured_text("SUPPORT_EMAIL", "support@atsforge.org"),
+        "legal_entity_name": configured_text("LEGAL_ENTITY_NAME", "ATSForge"),
+        "legal_address": configured_text("LEGAL_ADDRESS"),
+    }
+
+
+def page_with_site_details(page_data: dict[str, Any]) -> dict[str, Any]:
+    """Fill public-policy placeholders while keeping source page content reusable."""
+    details = site_contact_details()
+    replacements = {
+        "{{SUPPORT_EMAIL}}": details["support_email"],
+        "{{LEGAL_ENTITY_NAME}}": details["legal_entity_name"],
+        "{{LEGAL_ADDRESS}}": details["legal_address"],
+    }
+
+    def replace(value: Any) -> Any:
+        if isinstance(value, str):
+            for token, replacement in replacements.items():
+                value = value.replace(token, replacement)
+            return value
+        if isinstance(value, tuple):
+            return tuple(replace(item) for item in value)
+        if isinstance(value, list):
+            return [replace(item) for item in value]
+        if isinstance(value, dict):
+            return {key: replace(item) for key, item in value.items()}
+        return value
+
+    return replace(deepcopy(page_data))
+
 STOP_WORDS = {
     "a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "has",
     "have", "in", "is", "it", "of", "on", "or", "our", "that", "the", "their",
     "this", "to", "we", "will", "with", "you", "your", "who", "using", "work",
     "job", "role", "team", "years", "including", "required", "preferred",
+    "need", "needs", "seeking", "looking", "position", "opportunity", "candidate",
+    "candidates", "qualification", "qualifications", "include", "includes", "building",
+    "build", "built", "responsibility", "responsibilities", "must", "should",
 }
 
 ACTION_VERBS = [
@@ -63,9 +106,27 @@ def clean(value: Any, limit: int = 5000) -> str:
 
 
 def keyword_list(text: str, limit: int = 18) -> list[str]:
-    words = re.findall(r"[A-Za-z][A-Za-z0-9+#.\-/]{1,30}", text.lower())
+    words = [word.rstrip("./-") for word in re.findall(r"[A-Za-z][A-Za-z0-9+#.\-/]{1,30}", text.lower())]
     counts = Counter(w for w in words if w not in STOP_WORDS and len(w) > 2)
     return [word for word, _ in counts.most_common(limit)]
+
+
+def contains_term(text: str, term: str) -> bool:
+    """Match role terms without treating part of a longer word as a match."""
+    return bool(re.search(rf"(?<!\w){re.escape(term)}(?!\w)", text.casefold()))
+
+
+def job_match_ratio(terms: list[str], text: str) -> tuple[int | None, list[str]]:
+    """Return transparent coverage of selected job-description terms.
+
+    This is a relevance signal, not a claim to reproduce an employer's ATS or
+    predict a hiring outcome. A term is counted only when it already appears in
+    user-provided resume content.
+    """
+    if not terms:
+        return None, []
+    matched = [term for term in terms if contains_term(text, term)]
+    return round(100 * len(matched) / len(terms)), matched
 
 
 def normalize_items(items: Any, fields: list[str], max_items: int = 10) -> list[dict[str, str]]:
@@ -99,27 +160,52 @@ def build_resume(payload: dict[str, Any]) -> dict[str, Any]:
 
 def ats_analysis(data: dict[str, Any]) -> dict[str, Any]:
     basics = data["basics"]
-    searchable = " ".join([
-        basics.get("summary", ""), " ".join(data["skills"]),
-        " ".join(x.get("highlights", "") for x in data["experience"]),
-        " ".join(x.get("description", "") for x in data["projects"]),
-    ]).lower()
+    section_text = {
+        "basics": " ".join([basics.get("title", ""), basics.get("summary", "")]),
+        "experience": " ".join(
+            " ".join(item.get(field, "") for field in ("title", "highlights"))
+            for item in data["experience"]
+        ),
+        "education": " ".join(
+            " ".join(item.get(field, "") for field in ("degree", "details"))
+            for item in data["education"]
+        ),
+        "skills": " ".join(data["skills"] + data["languages"]),
+        "projects": " ".join(
+            " ".join(item.get(field, "") for field in ("name", "description"))
+            for item in data["projects"]
+        ),
+    }
+    searchable = " ".join(section_text.values())
     keywords = keyword_list(data["job_description"])
-    matched = [k for k in keywords if re.search(rf"\b{re.escape(k)}\b", searchable)]
-    missing = [k for k in keywords if k not in matched]
+    match_ratio, matched = job_match_ratio(keywords, searchable)
+    missing = [term for term in keywords if term not in matched]
+    section_match_ratio = {
+        section: job_match_ratio(keywords, text)[0]
+        for section, text in section_text.items()
+    }
+    section_match_ratio["target"] = match_ratio
     checks = {
         "Contact details": bool(basics.get("email") and basics.get("phone")),
         "Professional summary": len(basics.get("summary", "").split()) >= 20,
         "Work experience": bool(data["experience"]),
         "Measurable impact": bool(re.search(r"\b\d+(?:[.,]\d+)?%?|\$\d+", searchable)),
         "Relevant skills": len(data["skills"]) >= 5,
-        "Job tailoring": not keywords or len(matched) >= max(2, round(len(keywords) * .35)),
+        "Job tailoring": match_ratio is None or match_ratio >= 35,
     }
     completeness = sum(checks.values()) / len(checks) * 55
-    keyword_score = (len(matched) / len(keywords) * 35) if keywords else 20
+    keyword_score = (match_ratio * .35) if match_ratio is not None else 20
     clarity = 10 if all(len(x.get("highlights", "").split()) <= 100 for x in data["experience"]) else 5
     score = min(100, round(completeness + keyword_score + clarity))
-    return {"score": score, "checks": checks, "matched": matched, "missing": missing[:10], "keywords": keywords}
+    return {
+        "score": score,
+        "checks": checks,
+        "matched": matched,
+        "missing": missing[:10],
+        "keywords": keywords,
+        "match_ratio": match_ratio,
+        "section_match_ratio": section_match_ratio,
+    }
 
 
 def set_bottom_border(paragraph, color: str = "555555", size: str = "6") -> None:
@@ -406,6 +492,8 @@ def tailor_resume_upload():
     response.headers["X-Tailor-Mode"] = mode
     response.headers["X-ATS-Score-Before"] = str(before["score"])
     response.headers["X-ATS-Score-After"] = str(after["score"])
+    response.headers["X-Job-Match-Before"] = str(before["score"])
+    response.headers["X-Job-Match-After"] = str(after["score"])
     response.headers["X-Matched-Keywords"] = ", ".join(after["matched"][:10])
     response.headers["X-Missing-Keywords"] = ", ".join(after["missing"][:10])
     response.headers["X-Content-Type-Options"] = "nosniff"
@@ -418,7 +506,7 @@ def public_navigation():
         "all_pages": ALL_PAGES,
         "nav_groups": NAV_GROUPS,
         "site_url": site_url(),
-        "ads_enabled": os.getenv("ADS_ENABLED", "false").lower() == "true",
+        **site_contact_details(),
         "google_site_verification": os.getenv("GOOGLE_SITE_VERIFICATION", "").strip(),
     }
 
@@ -428,6 +516,7 @@ def content_page(slug: str):
     page_data = ALL_PAGES.get(slug)
     if not page_data:
         return render_template("404.html"), 404
+    page_data = page_with_site_details(page_data)
     words = " ".join([page_data["intro"]] + [f"{heading} {body}" for heading, body in page_data["sections"]]
                      + [f"{question} {answer}" for question, answer in page_data.get("faq", [])])
     word_count = len(re.findall(r"\b[\w’'-]+\b", words))
@@ -461,7 +550,7 @@ def sitemap():
         public_url(f"/resources/{slug}") for slug in ALL_PAGES
     ]
     body = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">" + "".join(
-        f"<url><loc>{url}</loc><lastmod>2026-08-06</lastmod></url>" for url in urls) + "</urlset>"
+        f"<url><loc>{url}</loc><lastmod>2026-08-08</lastmod></url>" for url in urls) + "</urlset>"
     return app.response_class(body, mimetype="application/xml")
 
 
@@ -483,6 +572,14 @@ def not_found(_error):
 def set_response_headers(response):
     if request.path.startswith("/static/"):
         response.headers["Cache-Control"] = "public, max-age=604800"
+    elif request.path.startswith("/api/"):
+        # Resume contents and generated documents are sensitive and should not be cached.
+        response.headers["Cache-Control"] = "no-store, private"
+        response.headers["Pragma"] = "no-cache"
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    response.headers.setdefault("Permissions-Policy", "camera=(), geolocation=(), microphone=()")
     return response
 
 

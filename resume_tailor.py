@@ -34,6 +34,8 @@ STOP_WORDS = {
     "who", "but", "not", "all", "can", "their", "skills", "experience", "about", "they", "was", "were",
     "hiring", "candidate", "candidates", "create", "improve", "lead", "maintain", "test", "looking", "join",
     "responsibilities", "requirements", "responsible", "include", "including", "ability", "strong", "excellent",
+    "need", "needs", "seeking", "position", "opportunity", "qualification", "qualifications", "includes",
+    "building", "build", "built", "must", "should",
 }
 
 
@@ -93,6 +95,7 @@ def keywords(text: str, limit: int = 24) -> list[str]:
 
 
 def match_report(resume_text: str, job_description: str) -> dict[str, Any]:
+    """Measure selected job-language coverage; it is not an employer ATS score."""
     job_keywords = keywords(job_description)
     source = resume_text.lower()
     matched = [word for word in job_keywords if re.search(rf"(?<!\w){re.escape(word)}(?!\w)", source)]

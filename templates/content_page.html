@@ -14,9 +14,8 @@
       {% if page.faq %}<a href="#questions">Questions</a>{% endif %}
     </aside>
     <div class="article-body">
-      {% for heading, body in page.sections %}<section id="section-{{ loop.index }}"><span class="section-index">0{{ loop.index }}</span><h2>{{ heading }}</h2><p>{{ body }}</p></section>{% endfor %}
+      {% for heading, body in page.sections %}<section id="section-{{ loop.index }}"><span class="section-index">0{{ loop.index }}</span><h2>{{ heading }}</h2><p>{{ body|urlize }}</p></section>{% endfor %}
       {% if page.faq %}<section id="questions" class="faq-section"><span class="section-index">FAQ</span><h2>Questions and answers</h2>{% for question, answer in page.faq %}<details><summary>{{ question }}</summary><p>{{ answer }}</p></details>{% endfor %}</section>{% endif %}
-      {% include "partials/ad_slot.html" %}
       <aside class="trust-note"><h2>Clear guidance, honest evidence</h2><p>ATSForge does not guarantee hiring outcomes or simulate an employer's private ATS. Resume data is processed only to provide requested analysis and exports; drafts stay in your browser. Read our <a href="{{ url_for('content_page', slug='privacy-policy') }}">privacy and retention policy</a>.</p></aside>
     </div>
   </div>

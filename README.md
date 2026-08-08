@@ -1,4 +1,4 @@
-# ClearCV
+# ATSForge
 
 A polished Python/Flask résumé builder focused on ATS-safe structure, honest job tailoring, and editable Word export.
 
@@ -41,15 +41,17 @@ The token is read only on the server and must never be placed in browser JavaScr
 
 ## Production SEO configuration
 
-Set these Railway environment variables before connecting the custom domain:
+Set these Railway environment variables after connecting the custom domain:
 
 ```bash
-SITE_URL="https://www.example.com"
+SITE_URL="https://atsforge.org"
 GOOGLE_SITE_VERIFICATION="Google Search Console verification token"
-ADS_ENABLED="false"
+SUPPORT_EMAIL="support@atsforge.org"
+LEGAL_ENTITY_NAME="Your real person or registered business name"
+LEGAL_ADDRESS="Your registered business address, if applicable"
 ```
 
-`SITE_URL` is the single public origin used by canonical tags, Open Graph URLs, JSON-LD, `sitemap.xml`, and `robots.txt`. Do not include a trailing slash. Leave `GOOGLE_SITE_VERIFICATION` empty until Search Console provides a token; no tag is rendered when it is absent. `ADS_ENABLED` is false by default and does not load any advertising script.
+`SITE_URL` is the single public origin used by canonical tags, Open Graph URLs, JSON-LD, `sitemap.xml`, and `robots.txt`. Do not include a trailing slash. `SUPPORT_EMAIL` must be a monitored mailbox. Set `LEGAL_ENTITY_NAME` to the real person or business operating the site; never leave a placeholder on the live legal pages. Leave `GOOGLE_SITE_VERIFICATION` empty until Search Console provides a token; no tag is rendered when it is absent. The application does not load advertising code.
 
 ## Design and research basis
 

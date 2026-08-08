@@ -3,6 +3,7 @@ const $$ = (s, root = document) => [...root.querySelectorAll(s)];
 const steps = ['basics', 'experience', 'education', 'skills', 'target'];
 let current = 0;
 let timer;
+let analysisRequest = 0;
 
 function esc(value = '') {
   const div = document.createElement('div'); div.textContent = value; return div.innerHTML;
@@ -52,14 +53,30 @@ function render(data) {
 }
 
 async function analyze(data) {
+  const requestId = ++analysisRequest;
   try {
     const response = await fetch('/api/analyze', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
     const {analysis} = await response.json();
+    if (requestId !== analysisRequest) return;
     $('#score').textContent = analysis.score;
     $('#score-ring').style.borderTopColor = analysis.score >= 75 ? '#235f47' : analysis.score >= 50 ? '#c58b31' : '#a9584b';
     const passed = Object.values(analysis.checks).filter(Boolean).length;
-    $('#score-message').textContent = `${passed} of ${Object.keys(analysis.checks).length} quality checks passed. ${analysis.missing.length ? 'Review missing role language below—only add it when accurate.' : 'Your role language is well represented.'}`;
-    $('#keyword-chips').innerHTML = [...analysis.matched.slice(0,5).map(k=>`<span class="chip">✓ ${esc(k)}</span>`), ...analysis.missing.slice(0,5).map(k=>`<span class="chip missing">+ ${esc(k)}</span>`)].join('');
+    const hasJobMatch = Number.isInteger(analysis.match_ratio);
+    const matchText = hasJobMatch ? `${analysis.match_ratio}%` : '—';
+    $('#job-match-ratio').textContent = matchText;
+    $('#match-ratio-note').textContent = hasJobMatch
+      ? `${analysis.matched.length} of ${analysis.keywords.length} selected role terms found in your CV.`
+      : 'Paste a job description to compare role language.';
+    $$('[data-match-step]').forEach(el => {
+      const ratio = analysis.section_match_ratio?.[el.dataset.matchStep];
+      el.textContent = Number.isInteger(ratio) ? `JD match ${ratio}%` : 'JD match —';
+    });
+    $('#score-message').textContent = hasJobMatch
+      ? `${passed} of ${Object.keys(analysis.checks).length} quality checks passed. ${analysis.missing.length ? 'Review unmatched role language below—only add it when your experience supports it.' : 'Your selected role language is well represented.'}`
+      : `${passed} of ${Object.keys(analysis.checks).length} quality checks passed. Add the full job description for a separate match ratio.`;
+    $('#keyword-chips').innerHTML = hasJobMatch
+      ? [...analysis.matched.slice(0,5).map(k=>`<span class="chip">✓ ${esc(k)}</span>`), ...analysis.missing.slice(0,5).map(k=>`<span class="chip missing">+ ${esc(k)}</span>`)].join('')
+      : '';
   } catch (_) { /* Preview remains useful if server analysis is unavailable. */ }
 }
 

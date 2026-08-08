@@ -41,8 +41,8 @@
       if (downloadUrl) URL.revokeObjectURL(downloadUrl);
       downloadUrl = URL.createObjectURL(blob);
       const mode = response.headers.get('X-Tailor-Mode');
-      document.querySelector('#before-score').textContent = (response.headers.get('X-ATS-Score-Before') || '0') + '%';
-      document.querySelector('#after-score').textContent = (response.headers.get('X-ATS-Score-After') || '0') + '%';
+      document.querySelector('#before-score').textContent = (response.headers.get('X-Job-Match-Before') || response.headers.get('X-ATS-Score-Before') || '0') + '%';
+      document.querySelector('#after-score').textContent = (response.headers.get('X-Job-Match-After') || response.headers.get('X-ATS-Score-After') || '0') + '%';
       document.querySelector('#matched-words').textContent = response.headers.get('X-Matched-Keywords') || 'No strong matches found yet.';
       document.querySelector('#missing-words').textContent = response.headers.get('X-Missing-Keywords') || 'No major keyword gaps detected.';
       document.querySelector('#result-mode').textContent = mode === 'ai' ? 'AI tailored the wording and hierarchy using source-supported evidence only.' : 'Your original wording was preserved and reformatted for ATS readability. Add HF_TOKEN to enable evidence-constrained AI rewriting.';
