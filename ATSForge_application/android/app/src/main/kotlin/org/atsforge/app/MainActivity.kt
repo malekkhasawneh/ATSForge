@@ -1,4 +1,4 @@
-package org.atsforge.atsforge_application
+package org.atsforge.app
 
 import io.flutter.embedding.android.FlutterActivity
 
