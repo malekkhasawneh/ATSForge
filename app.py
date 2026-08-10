@@ -455,9 +455,6 @@ def content_page(slug: str):
     if not page_data:
         return render_template("404.html"), 404
     page_data = page_with_site_details(page_data)
-    words = " ".join([page_data["intro"]] + [f"{heading} {body}" for heading, body in page_data["sections"]]
-                     + [f"{question} {answer}" for question, answer in page_data.get("faq", [])])
-    word_count = len(re.findall(r"\b[\w’'-]+\b", words))
     page_url = public_url(f"/resources/{slug}")
     schema = {
         "@context": "https://schema.org", "@graph": [
@@ -479,7 +476,7 @@ def content_page(slug: str):
             for q, a in page_data["faq"]
         ]}
     return render_template("content_page.html", page=page_data, schema=schema,
-                           faq_schema=faq_schema, word_count=word_count)
+                           faq_schema=faq_schema)
 
 
 @app.get("/sitemap.xml")
