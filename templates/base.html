@@ -7,7 +7,8 @@
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-    gtag('config', 'G-HKHHQFQ8M3');
+    gtag('config', 'G-HKHHQFQ8M3', {send_page_view: false});
+    gtag('event', 'page_view', {page_location: window.location.origin + window.location.pathname, page_title: document.title});
   </script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -31,15 +32,16 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/content.css') }}">
+  <script defer src="{{ url_for('static', filename='js/analytics.js', v='ga4-events-1') }}"></script>
   {% block extra_head %}{% endblock %}
   <script type="application/ld+json">{{ schema|tojson }}</script>
   {% if page.faq %}<script type="application/ld+json">{{ faq_schema|tojson }}</script>{% endif %}
 </head>
-<body>
+<body{% if page.analytics_guide_slug %} data-analytics-guide-slug="{{ page.analytics_guide_slug }}" data-analytics-category="{{ page.analytics_category }}"{% endif %}>
   <header class="topbar content-topbar">
     <a class="brand" href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='img/ATSForge without bg.png') }}" alt="ATSForge logo" width="34" height="34"> ATSForge</a>
     <nav aria-label="Primary"><a href="{{ url_for('resume_tailor_page') }}">Tailor Resume</a><a href="{{ url_for('content_page', slug='ats-resume-guide') }}">Guides</a><a href="{{ url_for('resume_template_selector') }}">Templates</a><a href="{{ url_for('content_page', slug='pricing') }}">Pricing</a><a href="{{ url_for('content_page', slug='about') }}">About</a></nav>
-    <a class="button small" href="{{ url_for('home') }}#builder">Build my CV</a>
+    <a class="button small" href="{{ url_for('home') }}#builder" data-analytics-cta="build_my_cv" data-analytics-destination="resume_builder">Build my CV</a>
   </header>
   <main>{% block content %}{% endblock %}</main>
   {% include "partials/footer.html" %}

@@ -9,7 +9,7 @@
     <div class="tailor-trust"><span>✓ DOCX only</span><span>✓ No permanent file storage</span><span>✓ No invented metrics</span></div>
   </div>
   <div class="tailor-card">
-    <form id="tailor-form" enctype="multipart/form-data">
+    <form id="tailor-form" enctype="multipart/form-data" data-ai-mode="{{ 'enabled' if ai_configured else 'disabled' }}">
       <div class="tailor-step"><span>1</span><div><h2>Upload your résumé</h2><p>Microsoft Word `.docx`, up to 5 MB</p></div></div>
       <label class="file-drop" id="file-drop">
         <input type="file" name="resume" id="resume-file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required>
@@ -39,5 +39,5 @@
   <div class="process-grid"><article><b>01</b><h3>Read the source</h3><p>ATSForge extracts selectable text from paragraphs and tables in your DOCX without creating a permanent résumé record.</p></article><article><b>02</b><h3>Map role language</h3><p>The job description is used as context. Missing keywords are never treated as proof that you possess a skill.</p></article><article><b>03</b><h3>Protect the evidence</h3><p>The AI prompt prohibits invented employers, credentials, tools, responsibilities, and results. New numbers trigger an automatic rejection.</p></article><article><b>04</b><h3>Export cleanly</h3><p>The result uses a single column, familiar headings, ordinary bullets, selectable text, and an editable Word format.</p></article></div>
 </section>
 <section class="tailor-disclosure"><div><h2>What this feature can—and cannot—do</h2><p>Tailoring can improve relevance, wording, hierarchy, and ATS readability. It cannot create experience you do not have, guarantee an interview, reproduce an employer's private screening system, or replace your final review. Always compare the downloaded document with your original before applying.</p></div><div><h3>Privacy and retention</h3><p>The uploaded file is read in memory for this request and is not intentionally saved to disk or a résumé database. When AI mode is enabled, extracted résumé text and the job description are sent to the configured Hugging Face inference provider for processing. Do not upload sensitive information you do not need in a job application.</p><a href="{{ url_for('content_page', slug='privacy-policy') }}">Read the Privacy Policy →</a></div></section>
-<script src="{{ url_for('static', filename='js/tailor.js') }}"></script>
+<script src="{{ url_for('static', filename='js/tailor.js', v='ga4-events-1') }}"></script>
 {% endblock %}

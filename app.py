@@ -338,7 +338,7 @@ def create_pdf(data: dict[str, Any]) -> io.BytesIO:
 def home():
     page_data = {
         "title": "Free ATS Resume Builder with DOCX and PDF Export",
-        "description": "Build a clear, ATS-friendly resume, compare it with a job description, and export an editable DOCX or text-based PDF.",
+        "description": "Build a clear, ATS-friendly resume, review visible completeness factors, and export an editable DOCX or text-based PDF.",
         "faq": [],
     }
     schema = {
@@ -455,6 +455,8 @@ def content_page(slug: str):
     if not page_data:
         return render_template("404.html"), 404
     page_data = page_with_site_details(page_data)
+    page_data["analytics_guide_slug"] = slug
+    page_data["analytics_category"] = re.sub(r"[^a-z0-9]+", "-", page_data["category"].lower()).strip("-")
     page_url = public_url(f"/resources/{slug}")
     schema = {
         "@context": "https://schema.org", "@graph": [

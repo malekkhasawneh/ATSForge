@@ -2,7 +2,7 @@ name: atsforge_application
 description: "The native ATSForge resume builder and tailoring application."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.0+1
+version: 1.0.0+3
 
 environment:
   sdk: ^3.5.3
@@ -33,6 +33,12 @@ dev_dependencies:
   flutter_lints: ^4.0.0
 
 flutter:
+
+  # `flutter_native_splash` is incompatible with Flutter's experimental
+  # Swift Package Manager migration in this project. Keep iOS dependencies
+  # managed by CocoaPods until that integration is fixed upstream.
+  config:
+    enable-swift-package-manager: false
 
   uses-material-design: true
   assets:

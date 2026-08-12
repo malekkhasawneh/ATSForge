@@ -4,6 +4,24 @@ const steps = ['basics', 'experience', 'education', 'skills', 'target'];
 let current = 0;
 let timer;
 let analysisRequest = 0;
+let builderStarted = false;
+let analysisStarted = false;
+
+function track(eventName, params) { window.atsAnalytics?.track(eventName, params); }
+function trackOnce(key, eventName, params) { window.atsAnalytics?.trackOnce(key, eventName, params); }
+function templateType() { return $('[name="template"]')?.value || 'professional'; }
+function builderSource() { return new URLSearchParams(location.search).get('template') ? 'template' : 'homepage'; }
+function hasMeaningfulContent(data) {
+  const b = data.basics;
+  return Boolean(b.name || b.title || b.summary || data.skills.length || data.languages.length ||
+    ['experience', 'education', 'projects'].some(type => data[type].some(item => Object.values(item).some(Boolean))));
+}
+function scoreBucket(score) {
+  if (score <= 25) return '0_25';
+  if (score <= 50) return '26_50';
+  if (score <= 75) return '51_75';
+  return '76_100';
+}
 
 function esc(value = '') {
   const div = document.createElement('div'); div.textContent = value; return div.innerHTML;
@@ -58,15 +76,28 @@ function render(data) {
 
 async function analyze(data) {
   const requestId = ++analysisRequest;
+  if (builderStarted && !analysisStarted) {
+    analysisStarted = true;
+    trackOnce('ats_analysis_started', 'ats_analysis_started', {analysis_type: 'readiness'});
+  }
   try {
     const response = await fetch('/api/analyze', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
+    if (!response.ok) throw response;
     const {analysis} = await response.json();
     if (requestId !== analysisRequest) return;
     $('#score').textContent = analysis.score;
     $('#score-ring').style.borderTopColor = analysis.score >= 75 ? '#235f47' : analysis.score >= 50 ? '#c58b31' : '#a9584b';
     const passed = Object.values(analysis.checks).filter(Boolean).length;
     $('#score-message').textContent = `${passed} of ${Object.keys(analysis.checks).length} quality checks passed. Add clear, truthful evidence before exporting.`;
-  } catch (_) { /* Preview remains useful if server analysis is unavailable. */ }
+    if (builderStarted) trackOnce('ats_analysis_completed', 'ats_analysis_completed', {analysis_type: 'readiness', score_bucket: scoreBucket(analysis.score)});
+  } catch (problem) {
+    if (builderStarted) {
+      const errorType = window.atsAnalytics?.requestErrorType(problem) || 'network_error';
+      trackOnce('ats_analysis_failed', 'ats_analysis_failed', {analysis_type: 'readiness'});
+      trackOnce('api_request_failed_builder_analysis', 'api_request_failed', {error_type: errorType, feature: 'builder_analysis'});
+    }
+    /* Preview remains useful if server analysis is unavailable. */
+  }
 }
 
 function changed() {
@@ -79,14 +110,34 @@ function showStep(index) {
   $$('.step').forEach((el,i) => el.classList.toggle('active', i === current));
   $$('.panel').forEach(el => el.classList.toggle('active', el.dataset.panel === steps[current]));
   $('#step-count').textContent = `${current + 1} / ${steps.length}`;
+  if (current === steps.length - 1 && builderStarted) {
+    trackOnce('cv_builder_completed', 'cv_builder_completed');
+    trackOnce('cv_preview_viewed', 'cv_preview_viewed', {template_type: templateType()});
+  }
   $('.back').style.visibility = current ? 'visible' : 'hidden';
   $('.next').textContent = current === steps.length - 1 ? 'Review résumé →' : 'Continue →';
 }
 
-document.addEventListener('input', e => { if (e.target.matches('input,textarea')) changed(); });
+document.addEventListener('input', e => {
+  if (!e.target.matches('input,textarea')) return;
+  if (!builderStarted && e.target.value.trim()) {
+    builderStarted = true;
+    trackOnce('cv_builder_started', 'cv_builder_started', {source: builderSource()});
+  }
+  changed();
+});
 $$('[data-add]').forEach(btn => btn.addEventListener('click', () => { addItem(btn.dataset.add); changed(); }));
 $$('.step').forEach((btn,i) => btn.addEventListener('click', () => showStep(i)));
-$('.next').addEventListener('click', () => current < steps.length - 1 ? showStep(current + 1) : $('#resume-preview').scrollIntoView({behavior:'smooth'}));
+$('.next').addEventListener('click', () => {
+  if (current < steps.length - 1) {
+    showStep(current + 1);
+    return;
+  }
+  if (builderStarted && hasMeaningfulContent(collect())) {
+    trackOnce('cv_preview_viewed', 'cv_preview_viewed', {template_type: templateType()});
+  }
+  $('#resume-preview').scrollIntoView({behavior:'smooth'});
+});
 $('.back').addEventListener('click', () => showStep(current - 1));
 $$('[data-scroll]').forEach(btn => btn.addEventListener('click', () => $(`#${btn.dataset.scroll}`).scrollIntoView({behavior:'smooth'})));
 async function downloadResume(type) {
@@ -94,10 +145,19 @@ async function downloadResume(type) {
   btn.textContent = 'Preparing…'; btn.disabled = true;
   try {
     const response = await fetch(`/api/download/${type}`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(collect())});
-    if (!response.ok) throw new Error('Export failed');
+    if (!response.ok) throw response;
     const blob = await response.blob(); const url=URL.createObjectURL(blob); const a=document.createElement('a');
-    a.href=url; a.download=`ATS_Resume.${type}`; a.click(); URL.revokeObjectURL(url);
-  } catch (_) { alert('The document could not be created. Please try again.'); }
+    track('cv_generated', {format: type, template_type: templateType()});
+    a.href=url; a.download=`ATS_Resume.${type}`; a.click();
+    track('cv_downloaded', {format: type, template_type: templateType()});
+    URL.revokeObjectURL(url);
+  } catch (problem) {
+    const errorType = window.atsAnalytics?.requestErrorType(problem) || 'network_error';
+    track('export_failed', {error_type: errorType, feature: 'builder_export'});
+    track('api_request_failed', {error_type: errorType, feature: 'builder_export'});
+    if (errorType === 'validation_error') track('builder_validation_failed', {error_type: errorType, feature: 'builder_export'});
+    alert('The document could not be created. Please try again.');
+  }
   finally { btn.textContent = original; btn.disabled = false; }
 }
 $('#download-docx').addEventListener('click', () => downloadResume('docx'));

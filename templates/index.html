@@ -7,7 +7,8 @@
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-    gtag('config', 'G-HKHHQFQ8M3');
+    gtag('config', 'G-HKHHQFQ8M3', {send_page_view: false});
+    gtag('event', 'page_view', {page_location: window.location.origin + window.location.pathname, page_title: document.title});
   </script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -30,13 +31,14 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/content.css') }}">
+  <script defer src="{{ url_for('static', filename='js/analytics.js', v='ga4-events-1') }}"></script>
   <script type="application/ld+json">{{ schema|tojson }}</script>
 </head>
 <body>
   <header class="topbar">
     <a class="brand" href="#"><img src="{{ url_for('static', filename='img/ATSForge without bg.png') }}" alt="ATSForge logo" width="34" height="34"> ATSForge</a>
     <nav aria-label="Primary"><a href="#builder">Builder</a><a class="nav-template-tab" href="{{ url_for('resume_template_selector') }}">Templates</a><a href="{{ url_for('resume_tailor_page') }}">Tailor Resume</a><a href="{{ url_for('content_page', slug='ats-resume-guide') }}">ATS guide</a></nav>
-    <button class="button small" data-scroll="builder">Build my CV</button>
+    <button class="button small" data-scroll="builder" data-analytics-cta="build_my_cv" data-analytics-destination="resume_builder">Build my CV</button>
   </header>
 
   <main>
@@ -44,7 +46,7 @@
       <div class="eyebrow"><span></span> BUILT FOR PEOPLE AND PARSERS</div>
       <h1>Your story, clearly<br><em>qualified.</em></h1>
       <p>Create a focused, professional résumé that reads naturally, matches the role, and stays easy for applicant tracking systems to parse.</p>
-      <div class="hero-actions"><button class="button" data-scroll="builder">Start building <span>→</span></button><a class="secondary-link" href="{{ url_for('resume_tailor_page') }}">Tailor my resume →</a><span class="quiet">No sign-up. Your data stays in your browser.</span></div>
+      <div class="hero-actions"><button class="button" data-scroll="builder" data-analytics-cta="start_building" data-analytics-destination="resume_builder">Start building <span>→</span></button><a class="secondary-link" href="{{ url_for('resume_tailor_page') }}" data-analytics-cta="tailor_my_resume" data-analytics-destination="resume_tailor">Tailor my resume →</a><span class="quiet">No sign-up. Builder drafts stay in your browser.</span></div>
       <div class="proof"><div><strong>Single column</strong><small>Predictable reading order</small></div><div><strong>Quality review</strong><small>Clear, credible content</small></div><div><strong>Word export</strong><small>Clean, editable DOCX</small></div></div>
     </section>
 
@@ -122,6 +124,6 @@
   <template id="experience-template"><fieldset class="repeat-card"><button type="button" class="remove" aria-label="Remove">×</button><div class="grid two"><label>Job title<input data-field="title" placeholder="Senior Product Designer"></label><label>Company<input data-field="company" placeholder="Northstar Labs"></label></div><div class="grid three"><label>Location<input data-field="location" placeholder="Amman / Remote"></label><label>Start<input data-field="start" placeholder="Mar 2022"></label><label>End<input data-field="end" placeholder="Present"></label></div><label>Achievements <span class="hint">One bullet per line</span><textarea data-field="highlights" rows="6" placeholder="Led the redesign of...&#10;Reduced onboarding time by..."></textarea></label></fieldset></template>
   <template id="education-template"><fieldset class="repeat-card"><button type="button" class="remove" aria-label="Remove">×</button><div class="grid two"><label>Degree / certificate<input data-field="degree" placeholder="B.Sc. Computer Science"></label><label>Institution<input data-field="school" placeholder="University of Jordan"></label></div><div class="grid three"><label>Location<input data-field="location" placeholder="Amman"></label><label>Start<input data-field="start" placeholder="2017"></label><label>End<input data-field="end" placeholder="2021"></label></div><label>Details<input data-field="details" placeholder="Honors, relevant coursework, or distinction"></label></fieldset></template>
   <template id="projects-template"><fieldset class="repeat-card"><button type="button" class="remove" aria-label="Remove">×</button><div class="grid two"><label>Project name<input data-field="name" placeholder="Accessible Design System"></label><label>Link<input data-field="link" placeholder="github.com/..."></label></div><label>Description<textarea data-field="description" rows="3" placeholder="Built... resulting in..."></textarea></label></fieldset></template>
-  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/app.js', v='ga4-events-1') }}"></script>
 </body>
 </html>

@@ -9,7 +9,7 @@
 <section class="template-gallery">
   {% for key, template in templates.items() %}
   <article class="template-option template-option-{{ key }}">
-    <div class="template-preview">
+    <div class="template-preview" data-analytics-template-name="{{ key }}">
       <div class="mini-resume">
         <header><h2>Jordan Taylor</h2><strong>Senior Product Manager</strong><p>Amman · jordan@example.com · linkedin.com/in/jordan</p></header>
         <section><h3>Professional Summary</h3><p>Product leader translating customer insight into focused digital experiences and measurable business outcomes.</p></section>
@@ -18,9 +18,10 @@
         <section><h3>Education</h3><p><b>B.Sc. Business Information Systems</b> | University</p></section>
       </div>
     </div>
-    <div class="template-info"><div><small>{{ key|upper }}</small><h2>{{ template.name }}</h2><p>{% if key == 'professional' %}Balanced and dependable for most industries.{% elif key == 'modern' %}Confident, fresh, and ideal for contemporary roles.{% elif key == 'minimal' %}Quiet typography that puts concise evidence first.{% else %}Authoritative presentation for senior leadership.{% endif %}</p></div><a class="button choose-template" href="{{ url_for('home', template=key) }}#builder">Use {{ template.name }} →</a></div>
+    <div class="template-info"><div><small>{{ key|upper }}</small><h2>{{ template.name }}</h2><p>{% if key == 'professional' %}Balanced and dependable for most industries.{% elif key == 'modern' %}Confident, fresh, and ideal for contemporary roles.{% elif key == 'minimal' %}Quiet typography that puts concise evidence first.{% else %}Authoritative presentation for senior leadership.{% endif %}</p></div><a class="button choose-template" href="{{ url_for('home', template=key) }}#builder" data-analytics-cta="use_{{ key }}_template" data-analytics-destination="resume_builder">Use {{ template.name }} →</a></div>
   </article>
   {% endfor %}
 </section>
 <section class="selector-note"><div><span class="section-number">✓</span><h2>Designed for reliable reading.</h2></div><p>Template choice changes typography, alignment, and visual tone—not the reading order. Your selected design is applied to the live preview, editable DOCX, and text-based PDF.</p></section>
+<script defer src="{{ url_for('static', filename='js/template-selector.js', v='ga4-events-1') }}"></script>
 {% endblock %}
