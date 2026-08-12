@@ -7,6 +7,7 @@ import re
 from copy import deepcopy
 from datetime import datetime
 from typing import Any
+from urllib.parse import urlsplit
 
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -29,15 +30,30 @@ from resume_tailor import (TailorError, ai_tailor, create_fallback_docx, extract
 app = Flask(__name__)
 
 ADS_TXT_RECORD = "google.com, pub-2767727782899451, DIRECT, f08c47fec0942fa0\n"
+PUBLIC_ORIGIN = "https://atsforge.org"
 
 
 def site_url() -> str:
-    """Return the configured public origin without trusting request headers."""
-    return os.getenv("SITE_URL", "https://atsforge.org").strip().rstrip("/")
+    """Return the HTTPS production origin without trusting malformed config."""
+    configured = os.getenv("SITE_URL", PUBLIC_ORIGIN).strip().rstrip("/")
+    if configured not in {"http://atsforge.org", PUBLIC_ORIGIN}:
+        return PUBLIC_ORIGIN
+    return configured.replace("http://", "https://", 1)
 
 
 def public_url(path: str = "/") -> str:
-    return f"{site_url()}{path if path.startswith('/') else '/' + path}"
+    parsed = urlsplit(path)
+    if parsed.scheme or parsed.netloc or path.startswith("//"):
+        raise ValueError("Public URL paths must be relative to the ATSForge origin")
+    normalized_path = path if path.startswith("/") else f"/{path}"
+    return f"{site_url()}{normalized_path}"
+
+
+def current_public_url() -> str:
+    """Build metadata URLs from Flask routes, never from raw request paths."""
+    if request.endpoint in {"home", "resume_tailor_page", "resume_template_selector", "content_page"}:
+        return public_url(url_for(request.endpoint, **(request.view_args or {})))
+    return public_url()
 
 
 def configured_text(name: str, default: str = "") -> str:
@@ -444,6 +460,7 @@ def public_navigation():
         "all_pages": ALL_PAGES,
         "nav_groups": NAV_GROUPS,
         "site_url": site_url(),
+        "canonical_url": current_public_url(),
         **site_contact_details(),
         "google_site_verification": os.getenv("GOOGLE_SITE_VERIFICATION", "").strip(),
     }

@@ -16,12 +16,12 @@
   <title>{{ page.title }} | ATSForge</title>
   <meta name="description" content="{{ page.description }}">
   <meta name="robots" content="{% if page.noindex %}noindex, nofollow{% else %}index, follow, max-image-preview:large{% endif %}">
-  <link rel="canonical" href="{{ site_url }}{{ request.path }}">
+  <link rel="canonical" href="{{ canonical_url }}">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="ATSForge">
   <meta property="og:title" content="{{ page.title }} | ATSForge">
   <meta property="og:description" content="{{ page.description }}">
-  <meta property="og:url" content="{{ site_url }}{{ request.path }}">
+  <meta property="og:url" content="{{ canonical_url }}">
   <meta property="og:image" content="{{ site_url }}{{ url_for('static', filename='img/og-atsforge.svg') }}">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="{{ page.title }} | ATSForge">
