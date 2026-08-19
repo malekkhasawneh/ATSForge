@@ -17,14 +17,14 @@ from docx.oxml.ns import qn
 from docx.shared import Inches, Pt
 from flask import Flask, jsonify, render_template, request, send_file, url_for
 from reportlab.lib import colors
-from reportlab.lib.enums import TA_CENTER
+from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import HRFlowable, KeepTogether, Paragraph, SimpleDocTemplate, Spacer
 
 from content_pages import ALL_PAGES, GUIDE_PAGES, NAV_GROUPS
-from resume_tailor import (TailorError, ai_tailor, create_fallback_docx, extract_docx,
+from resume_tailor import (TailorError, ai_generate_cover_letter, ai_tailor, create_fallback_docx, extract_docx,
                            match_report, validate_docx)
 
 app = Flask(__name__)
@@ -51,7 +51,7 @@ def public_url(path: str = "/") -> str:
 
 def current_public_url() -> str:
     """Build metadata URLs from Flask routes, never from raw request paths."""
-    if request.endpoint in {"home", "resume_tailor_page", "resume_template_selector", "content_page"}:
+    if request.endpoint in {"home", "resume_tailor_page", "resume_template_selector", "cover_letter_page", "content_page"}:
         return public_url(url_for(request.endpoint, **(request.view_args or {})))
     return public_url()
 
@@ -350,6 +350,75 @@ def create_pdf(data: dict[str, Any]) -> io.BytesIO:
     document.build(story); out.seek(0); return out
 
 
+def build_cover_letter(payload: dict[str, Any]) -> dict[str, Any]:
+    letter = payload.get("letter") if isinstance(payload.get("letter"), dict) else {}
+    resume = payload.get("resume") if isinstance(payload.get("resume"), dict) else {}
+    basics = resume.get("basics") if isinstance(resume.get("basics"), dict) else {}
+    paragraphs = letter.get("paragraphs") if isinstance(letter.get("paragraphs"), list) else []
+    return {
+        "basics": {key: clean(basics.get(key), 300)
+                   for key in ["name", "title", "email", "phone", "location", "linkedin"]},
+        "company": clean(payload.get("company"), 300),
+        "recipient": clean(payload.get("recipient"), 200) or "Hiring Manager",
+        "greeting": clean(letter.get("greeting"), 300),
+        "paragraphs": [clean(item, 1600) for item in paragraphs[:4] if clean(item, 1600)],
+        "closing": clean(letter.get("closing"), 300) or "Sincerely,",
+    }
+
+
+def create_cover_letter_docx(data: dict[str, Any]) -> io.BytesIO:
+    doc = Document()
+    section = doc.sections[0]
+    section.top_margin = section.bottom_margin = Inches(.75)
+    section.left_margin = section.right_margin = Inches(.85)
+    normal = doc.styles["Normal"]
+    normal.font.name, normal.font.size = "Arial", Pt(11)
+    normal.paragraph_format.space_after = Pt(10)
+    basics = data["basics"]
+    name = doc.add_paragraph()
+    name.add_run(basics.get("name") or "YOUR NAME").bold = True
+    name.runs[0].font.size = Pt(16)
+    contact = " | ".join(item for item in [basics.get("location"), basics.get("phone"), basics.get("email"), basics.get("linkedin")] if item)
+    if contact:
+        doc.add_paragraph(contact)
+    doc.add_paragraph()
+    if data["company"]:
+        doc.add_paragraph(data["company"])
+    doc.add_paragraph(data["greeting"] or f"Dear {data['recipient']},")
+    for paragraph in data["paragraphs"]:
+        doc.add_paragraph(paragraph)
+    doc.add_paragraph(data["closing"])
+    doc.add_paragraph(basics.get("name") or "")
+    out = io.BytesIO(); doc.save(out); out.seek(0)
+    return out
+
+
+def create_cover_letter_pdf(data: dict[str, Any]) -> io.BytesIO:
+    out = io.BytesIO()
+    document = SimpleDocTemplate(out, pagesize=letter, rightMargin=.85 * inch, leftMargin=.85 * inch,
+                                 topMargin=.75 * inch, bottomMargin=.75 * inch,
+                                 title=f"{data['basics'].get('name') or 'Candidate'} — Cover Letter")
+    styles = getSampleStyleSheet()
+    name_style = ParagraphStyle("CoverLetterName", parent=styles["Normal"], fontName="Helvetica-Bold", fontSize=16,
+                                leading=19, textColor=colors.HexColor("#235F47"), spaceAfter=3)
+    body_style = ParagraphStyle("CoverLetterBody", parent=styles["Normal"], fontName="Helvetica", fontSize=11,
+                                leading=16, alignment=TA_LEFT, spaceAfter=11)
+    basics = data["basics"]
+    story = [Paragraph(pdf_text(basics.get("name") or "YOUR NAME"), name_style)]
+    contact = " &nbsp;|&nbsp; ".join(pdf_text(item) for item in [basics.get("location"), basics.get("phone"), basics.get("email"), basics.get("linkedin")] if item)
+    if contact:
+        story.append(Paragraph(contact, ParagraphStyle("CoverLetterContact", parent=body_style, fontSize=9, leading=12)))
+    story.append(Spacer(1, 16))
+    if data["company"]:
+        story.append(Paragraph(pdf_text(data["company"]), body_style))
+    story.append(Paragraph(pdf_text(data["greeting"] or f"Dear {data['recipient']},"), body_style))
+    story.extend(Paragraph(pdf_text(paragraph), body_style) for paragraph in data["paragraphs"])
+    story.append(Paragraph(pdf_text(data["closing"]), body_style))
+    story.append(Paragraph(pdf_text(basics.get("name") or ""), body_style))
+    document.build(story); out.seek(0)
+    return out
+
+
 @app.get("/")
 def home():
     page_data = {
@@ -383,6 +452,20 @@ def resume_tailor_page():
         "url": public_url("/resume-tailor"),
     }
     return render_template("resume_tailor.html", page=page_data, schema=schema,
+                           ai_configured=bool(os.getenv("HF_TOKEN", "").strip()))
+
+
+@app.get("/cover-letter")
+def cover_letter_page():
+    page_data = {
+        "title": "AI Cover Letter Generator",
+        "description": "Create an editable, role-specific cover letter from your ATSForge resume and a job description.",
+        "faq": [],
+    }
+    schema = {"@context": "https://schema.org", "@type": "WebApplication", "name": "ATSForge Cover Letter Generator",
+              "applicationCategory": "BusinessApplication", "operatingSystem": "Web", "url": public_url("/cover-letter"),
+              "description": page_data["description"], "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}}
+    return render_template("cover_letter.html", page=page_data, schema=schema,
                            ai_configured=bool(os.getenv("HF_TOKEN", "").strip()))
 
 
@@ -454,6 +537,45 @@ def tailor_resume_upload():
     return response
 
 
+@app.post("/api/generate-cover-letter")
+def generate_cover_letter():
+    payload = request.get_json(silent=True) or {}
+    resume = build_resume(payload.get("resume") if isinstance(payload.get("resume"), dict) else {})
+    company = clean(payload.get("company"), 300)
+    job_description = clean(payload.get("job_description"), 20000)
+    motivation = clean(payload.get("motivation"), 1200)
+    recipient = clean(payload.get("recipient"), 200)
+    tone = clean(payload.get("tone"), 30)
+    if not resume["basics"].get("name") or not (resume["experience"] or resume["skills"] or resume["basics"].get("summary")):
+        return jsonify({"error": "Add your name and resume experience, skills, or summary before generating a cover letter."}), 400
+    if not company:
+        return jsonify({"error": "Enter the company name."}), 400
+    if len(job_description.split()) < 30:
+        return jsonify({"error": "Paste a complete job description of at least 30 words."}), 400
+    try:
+        letter = ai_generate_cover_letter(resume, job_description, company, recipient, motivation,
+                                          tone if tone in {"professional", "warm", "direct"} else "professional")
+    except TailorError as exc:
+        return jsonify({"error": str(exc)}), 422
+    if letter is None:
+        return jsonify({"error": "Cover-letter generation is temporarily unavailable. Please try again later."}), 503
+    return jsonify({"letter": letter})
+
+
+@app.post("/api/download/cover-letter/<format>")
+def download_cover_letter(format: str):
+    if format not in {"docx", "pdf"}:
+        return jsonify({"error": "Unsupported export format."}), 404
+    data = build_cover_letter(request.get_json(silent=True) or {})
+    if not data["paragraphs"]:
+        return jsonify({"error": "Generate or add cover-letter text before exporting."}), 400
+    safe_name = re.sub(r"[^A-Za-z0-9_-]+", "_", data["basics"].get("name") or "cover_letter").strip("_")
+    if format == "docx":
+        return send_file(create_cover_letter_docx(data), as_attachment=True, download_name=f"{safe_name}_Cover_Letter.docx",
+                         mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+    return send_file(create_cover_letter_pdf(data), as_attachment=True, download_name=f"{safe_name}_Cover_Letter.pdf", mimetype="application/pdf")
+
+
 @app.context_processor
 def public_navigation():
     return {
@@ -500,7 +622,7 @@ def content_page(slug: str):
 
 @app.get("/sitemap.xml")
 def sitemap():
-    urls = [public_url(), public_url("/resume-tailor"), public_url("/resume-templates")] + [
+    urls = [public_url(), public_url("/resume-tailor"), public_url("/resume-templates"), public_url("/cover-letter")] + [
         public_url(f"/resources/{slug}") for slug in ALL_PAGES
     ]
     body = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">" + "".join(

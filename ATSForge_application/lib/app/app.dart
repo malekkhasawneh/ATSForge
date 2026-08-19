@@ -6,6 +6,8 @@ import '../core/constants/app_constants.dart';
 import '../core/design_system/app_theme.dart';
 import '../features/connectivity/presentation/cubit/connectivity_cubit.dart';
 import '../features/connectivity/presentation/widgets/connectivity_banner.dart';
+import '../features/cover_letter/presentation/cubit/cover_letter_cubit.dart';
+import '../features/cover_letter/presentation/pages/cover_letter_page.dart';
 import '../features/home/presentation/pages/home_page.dart';
 import '../features/resume_builder/presentation/cubit/resume_builder_cubit.dart';
 import '../features/resume_builder/presentation/pages/resume_builder_page.dart';
@@ -49,6 +51,11 @@ class ATSForgeApp extends StatelessWidget {
                       builder: (_) => BlocProvider(
                           create: (_) => sl<TailorCubit>(),
                           child: const TailorPage()));
+                case AppRoutes.coverLetter:
+                  return MaterialPageRoute<void>(
+                      builder: (_) => BlocProvider(
+                          create: (_) => sl<CoverLetterCubit>()..initialize(),
+                          child: const CoverLetterPage()));
                 default:
                   return MaterialPageRoute<void>(
                       builder: (_) => const HomePage());

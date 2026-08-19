@@ -200,6 +200,67 @@ Return this JSON shape:
         raise TailorError(f"Hugging Face tailoring is temporarily unavailable: {type(exc).__name__}.") from exc
 
 
+def ai_generate_cover_letter(
+    resume: dict[str, Any], job_description: str, company: str, recipient: str,
+    motivation: str, tone: str,
+) -> dict[str, Any] | None:
+    """Generate a concise, evidence-constrained cover letter using the configured model."""
+    token = os.getenv("HF_TOKEN", "").strip()
+    if not token:
+        return None
+    from huggingface_hub import InferenceClient
+    model = os.getenv("HF_MODEL", "Qwen/Qwen2.5-7B-Instruct-1M")
+    source = json.dumps(resume, ensure_ascii=False)
+    system = """You write concise, credible cover letters. Return JSON only.
+NON-NEGOTIABLE EVIDENCE RULES:
+- Use the resume as the only evidence for the candidate's skills, employers, titles, education, achievements, metrics, and experience.
+- The job description provides context only; never claim a missing requirement or skill.
+- Never invent a fact, number, credential, responsibility, result, or personal motivation.
+- The optional motivation is candidate-provided context. Do not embellish it.
+- Do not mention ATS scores, AI, or that this letter was generated.
+- Keep the letter under 350 words, professional, specific, and easy to edit.
+- Return exactly this JSON shape: {"greeting":"","paragraphs":["","",""],"closing":""}."""
+    prompt = f"""Create a cover letter for the role below.
+
+RESUME EVIDENCE:
+{source}
+
+JOB DESCRIPTION:
+{job_description[:15000]}
+
+COMPANY: {company}
+RECIPIENT: {recipient or 'Hiring Manager'}
+CANDIDATE-PROVIDED MOTIVATION: {motivation or 'None provided'}
+TONE: {tone}
+"""
+    try:
+        client = InferenceClient(provider="auto", api_key=token, timeout=90)
+        response = client.chat_completion(
+            model=model, messages=[{"role": "system", "content": system}, {"role": "user", "content": prompt}],
+            max_tokens=1100, temperature=0.25, top_p=0.85,
+        )
+        result = safe_json(response.choices[0].message.content or "")
+        paragraphs = result.get("paragraphs")
+        if not isinstance(paragraphs, list) or not 2 <= len(paragraphs) <= 4:
+            raise TailorError("The AI provider returned an incomplete cover letter. Please try again.")
+        letter = " ".join(str(paragraph) for paragraph in paragraphs)
+        source_numbers = set(re.findall(r"(?<!\w)[Â£â‚¬$]?\d[\d,.:/%+-]*", source))
+        source_numbers.update(re.findall(r"(?<!\w)[Â£â‚¬$]?\d[\d,.:/%+-]*", motivation))
+        output_numbers = set(re.findall(r"(?<!\w)[Â£â‚¬$]?\d[\d,.:/%+-]*", letter))
+        invented = sorted(output_numbers - source_numbers)
+        if invented:
+            raise TailorError("AI safety check rejected newly invented numbers: " + ", ".join(invented[:6]))
+        return {
+            "greeting": str(result.get("greeting") or f"Dear {recipient or 'Hiring Manager'},").strip()[:300],
+            "paragraphs": [re.sub(r"\s+", " ", str(item)).strip()[:1600] for item in paragraphs],
+            "closing": str(result.get("closing") or "Sincerely,").strip()[:300],
+        }
+    except TailorError:
+        raise
+    except Exception as exc:
+        raise TailorError(f"Hugging Face cover-letter generation is temporarily unavailable: {type(exc).__name__}.") from exc
+
+
 def fallback_blocks(blocks: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Infer only presentation roles; never modify source wording."""
     result = []

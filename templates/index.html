@@ -38,7 +38,7 @@
   <header class="topbar">
     <a class="brand" href="#"><img src="{{ url_for('static', filename='img/ATSForge without bg.png') }}" alt="ATSForge logo" width="34" height="34"> ATSForge</a>
     <nav aria-label="Primary"><a href="#builder">Builder</a><a class="nav-template-tab" href="{{ url_for('resume_template_selector') }}">Templates</a><a href="{{ url_for('resume_tailor_page') }}">Tailor Resume</a><a href="{{ url_for('content_page', slug='ats-resume-guide') }}">ATS guide</a></nav>
-    <button class="button small" data-scroll="builder" data-analytics-cta="build_my_cv" data-analytics-destination="resume_builder">Build my CV</button>
+    <button class="button small" data-scroll="builder" data-analytics-cta="build_my_resume" data-analytics-destination="resume_builder">Build my resume</button>
   </header>
 
   <main>
@@ -61,7 +61,7 @@
           <button class="step" data-step="experience"><span>2</span><b>Experience</b><small>Roles & impact</small></button>
           <button class="step" data-step="education"><span>3</span><b>Education</b><small>Study & training</small></button>
           <button class="step" data-step="skills"><span>4</span><b>Skills</b><small>Capabilities</small></button>
-          <button class="step" data-step="target"><span>5</span><b>Final review</b><small>Check your CV</small></button>
+          <button class="step" data-step="target"><span>5</span><b>Final review</b><small>Check your resume</small></button>
           <a class="template-switch" href="{{ url_for('resume_template_selector') }}"><span>▤</span><p><b id="active-template-name">Professional</b><small>Change template →</small></p></a>
           <div class="privacy"><span>⌁</span><p><b>Private by design</b><br>Your draft is stored locally, not in a database.</p></div>
         </aside>
@@ -99,15 +99,15 @@
             </div>
 
             <div class="panel" data-panel="target">
-              <div class="panel-title"><div><small>STEP 5 OF 5</small><h3>Review your CV</h3></div></div>
-              <div class="ats-card"><div class="score-ring" id="score-ring"><span id="score">—</span><small>READINESS</small></div><div><h4>CV readiness review</h4><p id="score-message">Complete your details to see focused quality feedback.</p></div></div>
+              <div class="panel-title"><div><small>STEP 5 OF 5</small><h3>Review your resume</h3></div></div>
+              <div class="ats-card"><div class="score-ring" id="score-ring"><span id="score">—</span><small>READINESS</small></div><div><h4>Resume readiness review</h4><p id="score-message">Complete your details to see focused quality feedback.</p></div></div>
             </div>
           </form>
           <div class="editor-footer"><button type="button" class="back text-button">← Back</button><span id="step-count">1 / 5</span><button type="button" class="button next">Continue →</button></div>
         </section>
 
         <aside class="preview-wrap">
-          <div class="preview-toolbar"><span>LIVE PREVIEW</span><div class="download-actions"><button id="download-docx" title="Download editable Word document">DOCX ↓</button><button id="download-pdf" title="Download PDF document">PDF ↓</button></div></div>
+          <div class="preview-toolbar"><span>LIVE PREVIEW</span><div class="download-actions"><a id="create-cover-letter" href="{{ url_for('cover_letter_page') }}" title="Create a cover letter from this resume">LETTER →</a><button id="download-docx" title="Download editable Word document">DOCX ↓</button><button id="download-pdf" title="Download PDF document">PDF ↓</button></div></div>
           <article class="resume" id="resume-preview" aria-label="Resume preview"></article>
           <p class="preview-note">A clean, single-column document with standard section names.</p>
         </aside>

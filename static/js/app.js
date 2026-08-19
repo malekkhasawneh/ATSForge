@@ -62,7 +62,7 @@ function render(data) {
     hasEntry(data.experience) || hasEntry(data.education) || hasEntry(data.projects)
   );
   if (!hasContent) {
-    preview.innerHTML = '<div class="empty-preview"><span class="empty-preview-icon">✦</span><b>Your CV preview will appear here</b><span>Start with your name and professional summary. It updates as you type.</span><div class="empty-preview-lines" aria-hidden="true"><i></i><i></i><i></i></div></div>'; return;
+    preview.innerHTML = '<div class="empty-preview"><span class="empty-preview-icon">✦</span><b>Your resume preview will appear here</b><span>Start with your name and professional summary. It updates as you type.</span><div class="empty-preview-lines" aria-hidden="true"><i></i><i></i><i></i></div></div>'; return;
   }
   const contact = [b.location, b.phone, b.email, b.linkedin].filter(Boolean).map(esc).join(' &nbsp;|&nbsp; ');
   const exp = data.experience.filter(x => Object.values(x).some(Boolean)).map(x => {
@@ -162,6 +162,9 @@ async function downloadResume(type) {
 }
 $('#download-docx').addEventListener('click', () => downloadResume('docx'));
 $('#download-pdf').addEventListener('click', () => downloadResume('pdf'));
+$('#create-cover-letter').addEventListener('click', () => {
+  localStorage.setItem('clearcv-cover-letter-resume', JSON.stringify(collect()));
+});
 
 function restore() {
   let draft; try { draft = JSON.parse(localStorage.getItem('clearcv-draft')); } catch (_) {}

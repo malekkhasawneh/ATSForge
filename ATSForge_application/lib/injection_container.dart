@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'core/network/api_client.dart';
 import 'core/storage/draft_storage.dart';
 import 'features/connectivity/presentation/cubit/connectivity_cubit.dart';
+import 'features/cover_letter/data/cover_letter_remote_data_source.dart';
+import 'features/cover_letter/presentation/cubit/cover_letter_cubit.dart';
 import 'features/resume_builder/data/datasources/resume_local_data_source.dart';
 import 'features/resume_builder/data/datasources/resume_remote_data_source.dart';
 import 'features/resume_builder/data/repositories/resume_repository_impl.dart';
@@ -30,7 +32,9 @@ Future<void> configureDependencies() async {
         () => ResumeRepositoryImpl(sl(), sl()))
     ..registerLazySingleton(() => TailorRemoteDataSource(sl()))
     ..registerLazySingleton<TailorRepository>(() => TailorRepositoryImpl(sl()))
+    ..registerLazySingleton(() => CoverLetterRemoteDataSource(sl()))
     ..registerFactory(() => ConnectivityCubit(sl(), sl()))
     ..registerFactory(() => ResumeBuilderCubit(sl()))
-    ..registerFactory(() => TailorCubit(sl()));
+    ..registerFactory(() => TailorCubit(sl()))
+    ..registerFactory(() => CoverLetterCubit(sl(), sl()));
 }

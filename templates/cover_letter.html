@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block extra_head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/cover_letter.css') }}">{% endblock %}
+{% block content %}
+<section class="cover-hero">
+  <div>
+    <p class="eyebrow"><span></span>AI COVER LETTER GENERATOR</p>
+    <h1>Turn your resume into a focused cover letter.</h1>
+    <p>Use your ATSForge resume and a target job description to create a concise, editable letter grounded in your real experience.</p>
+  </div>
+  <div class="cover-trust"><span>✓ Uses your resume as evidence</span><span>✓ No invented achievements</span><span>✓ DOCX and PDF export</span></div>
+</section>
+<section class="cover-workspace">
+  <div class="cover-form-card">
+    <form id="cover-letter-form" data-ai-mode="{{ 'enabled' if ai_configured else 'disabled' }}">
+      <h2>Target the application</h2>
+      <p class="form-intro">Your saved builder draft is used automatically when available. You can return to the <a href="{{ url_for('home') }}#builder">resume builder</a> to update it.</p>
+      <div id="resume-status" class="resume-status" role="status"></div>
+      <div class="cover-grid">
+        <label>Company name<input name="company" maxlength="300" required placeholder="e.g. Northstar Labs"></label>
+        <label>Hiring manager <span class="hint">Optional</span><input name="recipient" maxlength="200" placeholder="e.g. Ms. Haddad"></label>
+      </div>
+      <label>Job description<textarea name="job_description" rows="10" maxlength="20000" required placeholder="Paste the complete role description here…"></textarea></label>
+      <label>Why this role? <span class="hint">Optional; your own words only</span><textarea name="motivation" rows="4" maxlength="1200" placeholder="For example: I am drawn to the company’s work in…"></textarea></label>
+      <fieldset class="tone-picker"><legend>Tone</legend><label><input type="radio" name="tone" value="professional" checked> Professional</label><label><input type="radio" name="tone" value="warm"> Warm</label><label><input type="radio" name="tone" value="direct"> Direct</label></fieldset>
+      <button class="button" type="submit" id="generate-cover-letter">Generate cover letter →</button>
+      <p class="mode-note">Your draft is grounded in the resume details you provide. Review and edit it before applying.</p>
+    </form>
+  </div>
+  <aside class="cover-preview-card">
+    <div class="cover-preview-toolbar"><span>EDITABLE PREVIEW</span><div class="cover-downloads" hidden><button type="button" data-download="docx">DOCX ↓</button><button type="button" data-download="pdf">PDF ↓</button></div></div>
+    <article id="cover-letter-preview" class="cover-letter-preview" aria-live="polite"><div class="cover-empty"><b>Your cover letter will appear here</b><span>Add a company and job description, then generate a draft based on your resume.</span></div></article>
+    <p id="cover-error" class="cover-error" role="alert" hidden></p>
+  </aside>
+</section>
+<section class="cover-explainer">
+  <div><span class="section-number">02</span><h2>What a cover letter adds.</h2><p>Your resume lists the evidence. A cover letter gives that evidence a clear connection to one specific role.</p></div>
+  <div class="cover-explainer-grid"><article><b>01</b><h3>Connect your experience</h3><p>It highlights the most relevant parts of your background instead of repeating every resume detail.</p></article><article><b>02</b><h3>Show intentionality</h3><p>Use your own words to explain why the company or opportunity interests you.</p></article><article><b>03</b><h3>Make it personal</h3><p>Address the role and company directly, then edit the draft so it sounds like you.</p></article></div>
+</section>
+<section class="cover-disclosure"><h2>Review before you send.</h2><p>The letter uses the resume as evidence and the job description as context. Read and edit every draft, especially any statement about why you want the role. ATSForge does not guarantee interviews or hiring outcomes.</p></section>
+<script src="{{ url_for('static', filename='js/cover_letter.js', v='cover-letter-2') }}"></script>
+{% endblock %}

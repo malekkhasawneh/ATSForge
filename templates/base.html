@@ -40,8 +40,8 @@
 <body{% if page.analytics_guide_slug %} data-analytics-guide-slug="{{ page.analytics_guide_slug }}" data-analytics-category="{{ page.analytics_category }}"{% endif %}>
   <header class="topbar content-topbar">
     <a class="brand" href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='img/ATSForge without bg.png') }}" alt="ATSForge logo" width="34" height="34"> ATSForge</a>
-    <nav aria-label="Primary"><a href="{{ url_for('resume_tailor_page') }}">Tailor Resume</a><a href="{{ url_for('content_page', slug='ats-resume-guide') }}">Guides</a><a href="{{ url_for('resume_template_selector') }}">Templates</a><a href="{{ url_for('content_page', slug='pricing') }}">Pricing</a><a href="{{ url_for('content_page', slug='about') }}">About</a></nav>
-    <a class="button small" href="{{ url_for('home') }}#builder" data-analytics-cta="build_my_cv" data-analytics-destination="resume_builder">Build my CV</a>
+    <nav aria-label="Primary"><a href="{{ url_for('resume_tailor_page') }}">Tailor Resume</a><a href="{{ url_for('cover_letter_page') }}">Cover Letter</a><a href="{{ url_for('content_page', slug='ats-resume-guide') }}">Guides</a><a href="{{ url_for('resume_template_selector') }}">Templates</a><a href="{{ url_for('content_page', slug='pricing') }}">Pricing</a><a href="{{ url_for('content_page', slug='about') }}">About</a></nav>
+    <a class="button small" href="{{ url_for('home') }}#builder" data-analytics-cta="build_my_resume" data-analytics-destination="resume_builder">Build my resume</a>
   </header>
   <main>{% block content %}{% endblock %}</main>
   {% include "partials/footer.html" %}

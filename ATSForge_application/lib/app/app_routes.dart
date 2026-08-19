@@ -3,4 +3,5 @@ abstract final class AppRoutes {
   static const templates = '/templates';
   static const builder = '/builder';
   static const tailor = '/tailor';
+  static const coverLetter = '/cover-letter';
 }

@@ -12,7 +12,7 @@ class ReviewForm extends StatelessWidget {
     final analysis = context.select((ResumeBuilderCubit c) => c.state.analysis);
     final score = analysis?.score ?? 0;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const SectionHeading(step: 5, title: 'Review your CV'),
+      const SectionHeading(step: 5, title: 'Review your resume'),
       Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
@@ -41,7 +41,7 @@ class ReviewForm extends StatelessWidget {
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                  Text('CV readiness review',
+                  Text('Resume readiness review',
                       style: Theme.of(context).textTheme.titleLarge),
                   const SizedBox(height: 4),
                   Text(analysis == null

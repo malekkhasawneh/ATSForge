@@ -131,7 +131,14 @@ class ResumeBuilderPage extends StatelessWidget {
                               label: Text(
                                   state.status == ResumeBuilderStatus.exporting
                                       ? 'Preparing…'
-                                      : 'Save'))
+                                      : 'Save')),
+                          const SizedBox(width: 8),
+                          OutlinedButton.icon(
+                              onPressed: () =>
+                                  Navigator.pushNamed(context, '/cover-letter'),
+                              icon:
+                                  const Icon(Icons.markunread_mailbox_outlined),
+                              label: const Text('Letter'))
                         ]),
                     ]))),
           );

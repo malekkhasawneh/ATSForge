@@ -96,6 +96,14 @@ class HomePage extends StatelessWidget {
                                     'Match your DOCX résumé to a job description without inventing experience.',
                                 onTap: () => Navigator.pushNamed(
                                     context, AppRoutes.tailor)),
+                            const SizedBox(height: 12),
+                            FeatureCard(
+                                icon: Icons.markunread_mailbox_outlined,
+                                title: 'Create a cover letter',
+                                description:
+                                    'Connect your saved resume to a specific role with an editable draft.',
+                                onTap: () => Navigator.pushNamed(
+                                    context, AppRoutes.coverLetter)),
                             const SizedBox(height: 28),
                             const Row(children: [
                               Icon(Icons.lock_outline_rounded,
