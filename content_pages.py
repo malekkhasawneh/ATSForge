@@ -42,7 +42,7 @@ POLICY_PAGES = {
         "Effective August 8, 2026. This policy explains what ATSForge processes, why it is processed, how long it is kept, and the choices available to users. It should be read before entering personal information into the builder.", [
         ("Information you provide", "The Resume Builder may process contact details, employment history, education, skills, project information, and languages. Its draft fields are saved in local storage within your browser so you can return to them. Builder data is sent to our server only when you request analysis or an export. Resume Tailor accepts a DOCX resume and a pasted or uploaded job description; those submitted materials are sent to our server for the requested processing. Do not enter government identifiers, financial account data, health records, references' private details, or information you do not have permission to use."),
         ("Processing and purpose", "When you request the Resume Builder readiness review, submitted data is used to calculate visible completeness checks such as contact details, summary, experience, measurable impact, and skills. When you request an export, the server uses the submitted data to assemble a DOCX or text-based PDF in memory and return it to your browser. Processing is necessary to provide the requested feature. We do not use resume contents to build advertising profiles, sell them, or intentionally train models on them."),
-        ("Optional AI resume tailoring", "The Resume Tailor accepts a DOCX resume and pasted job description. The file is parsed in memory. When the site operator configures AI mode, extracted resume text and the job description are transmitted to the configured Hugging Face inference provider so it can produce a structured rewrite. That provider processes data under its own terms, security measures, and retention practices. The upload page discloses the active mode. Without AI configuration, the source wording is reformatted locally on the application server and is not sent to an AI provider."),
+        ("Optional AI resume tailoring", "The Resume Tailor accepts a DOCX resume and pasted job description. The file is parsed in memory. When AI tailoring is available, extracted resume text and the job description are transmitted to an AI service so it can produce a structured rewrite. That service processes data under its own terms, security measures, and retention practices. The upload page discloses the active mode. Without AI tailoring, the source wording is reformatted on the application server and is not sent to an AI service."),
         ("File retention and deletion", "ATSForge does not intentionally keep uploaded or generated resume files in the current architecture. In-memory export data is released after the response. Browser drafts remain on your device until you clear site data, use private browsing, or remove local storage through browser settings. To request deletion of any support record associated with you, contact {{SUPPORT_EMAIL}}."),
         ("Logs, analytics, cookies, and advertising", "Web infrastructure may record limited technical logs such as IP address, request time, browser type, route, and error details for reliability and abuse prevention. ATSForge uses local storage for browser-only drafts and Google Analytics 4 to measure page views and limited product interactions. Analytics events use controlled labels such as document format or feature state and are designed not to include resume content, job descriptions, uploaded file names, contact details, request bodies, or raw errors. Google Analytics may use cookies or similar identifiers under Google's terms and settings. The site does not currently load advertising code or advertising cookies. If advertising is introduced, this policy will be updated to describe the technologies, data use, providers, choices, and any consent required before they are enabled."),
         ("Security", "We minimize collection, avoid a resume database, escape displayed user content, and generate documents server-side from validated fields. Production deployment should enforce HTTPS, secure headers, dependency updates, access controls, monitoring, backups for essential business records, and a tested incident-response process. No internet transmission or storage system is perfectly secure; users should remove unnecessary sensitive details and protect downloaded files on their own devices."),
@@ -239,12 +239,37 @@ PROFESSIONS = {
     "fresh-graduate-resume": ("Fresh Graduate Resume Guide", "Fresh Graduate", "credible early-career potential", "coursework, projects, internships, research, teamwork, communication, tools, volunteer work", "project scope, users served, delivery time, grade distinction, contribution", "Turned coursework and project work into concise evidence of practical skills, collaboration, and readiness to learn."),
 }
 
+# These notes deliberately change the editorial emphasis from role to role.  They
+# are not keyword substitutions: each tells a candidate what proof carries weight
+# in that discipline and what a truthful career transition can look like.
+PROFESSION_PLAYBOOKS = {
+    "flutter-developer-resume": ("Put a recent shipped feature or app project before a long tool inventory. A strong project line names the user flow, state-management decision, integration, and test or release responsibility. For example, a fictional candidate could write: 'Built the account-recovery flow in Flutter, coordinating API error states and widget tests before the Android and iOS release.' Do not add a performance number unless you measured it.", "Junior candidates can lead with a small app that has a readable repository, clear setup notes, and a specific contribution. Senior candidates should make architecture trade-offs, release ownership, mentoring, or platform reliability visible rather than merely listing more packages.", "Candidates moving from web or native development should state what actually transferred: API integration, testing, deployment, or a cross-platform project. Do not imply deep iOS or Android ownership from a short tutorial app."),
+    "software-engineer-resume": ("Choose bullets that expose engineering judgment: the system boundary, reliability or security constraint, collaboration, and result. A fictional pattern is: 'Added idempotent request handling to an order service and documented failure cases with the API team.' It is more useful than 'worked on backend' and needs no invented metric.", "Early-career engineers can foreground substantial coursework, open-source work, internships, and tests. More experienced engineers should show system scope, operational responsibility, technical decisions, and the way they improved delivery for others.", "Career changers should make the bridge explicit through production-like projects, prior domain knowledge, or verifiable engineering work. Keep the prior role when it proves collaboration or domain context; do not rewrite it as an engineering title."),
+    "accountant-resume": ("Organize evidence around the financial cycle you supported. A fictional bullet could read: 'Reconciled assigned balance-sheet accounts, documented exceptions, and prepared open-item notes for month-end review.' This shows control work without exposing confidential balances or claiming ownership of the close.", "An entry-level accountant can lead with internships, reconciliation exercises, ERP exposure, or audit-preparation work. A senior accountant should clarify review authority, entities, close ownership, controls, and the reporting audience.", "People moving from bookkeeping, AP/AR, or operations should name the accounting tasks they truly performed and the records they controlled. State certification progress precisely and avoid implying a license or sign-off authority."),
+    "sales-representative-resume": ("Make the selling motion visible: market, buyer, prospecting or account scope, discovery work, CRM discipline, and handoff. A fictional pattern is: 'Qualified inbound small-business leads, recorded discovery notes in the CRM, and coordinated next steps with the account executive.' Use quota or revenue figures only when attributable and permitted.", "New representatives can show prospecting habits, customer-facing work, CRM training, and coachable process. Senior sellers should distinguish new-business, expansion, strategic-account, and team-leadership scope instead of presenting every sale as equivalent.", "Candidates moving from service or retail should translate truthful evidence such as needs discovery, product guidance, follow-up, and transaction accuracy. Do not turn customer service into closing responsibility unless you owned it."),
+    "project-manager-resume": ("Show how you made work governable: scope, dependencies, risk, decisions, stakeholders, and delivery outcome. A fictional bullet: 'Maintained a dependency and risk log for a cross-functional launch, escalating unresolved decisions before milestone dates.' This is stronger than claiming to have 'managed projects.'", "Coordinators can lead with meeting cadence, schedules, action tracking, and operational projects. Senior managers should clarify program scale, governance, budget authority, vendor responsibility, and how they resolved trade-offs.", "Transitioning from operations, events, or product work is credible when you describe planning, stakeholder communication, risks, and delivery artifacts you actually owned. Avoid adopting a project-manager title retroactively."),
+    "graphic-designer-resume": ("Use the resume to explain evidence behind portfolio work: brief, audience, constraints, your contribution, production handoff, and outcome. A fictional line: 'Prepared an approved campaign asset set for web and print, maintaining version control through stakeholder and vendor revisions.' The portfolio can show the visuals; the resume should establish authorship and reliability.", "Emerging designers may lead with a curated portfolio, coursework, freelance projects, and production skills. Senior designers should make art direction, brand stewardship, cross-functional influence, and review or production ownership easy to find.", "Candidates from adjacent creative roles should describe the design work actually produced and the software or production process used. Do not claim brand strategy or art direction solely because you followed an existing brief."),
+    "customer-service-resume": ("Choose one bullet for service quality and one for operational discipline. A fictional pattern: 'Handled account-access cases by email and chat, documented troubleshooting in the CRM, and escalated exceptions with complete notes.' It identifies channel, issue type, and evidence without exposing customer details.", "New candidates can use retail, hospitality, volunteer, or administrative situations to demonstrate listening, accuracy, procedures, and follow-through. Experienced support professionals should distinguish frontline, escalation, quality, knowledge-base, and team-coaching work.", "A transition into support should focus on customer communication, problem diagnosis, documentation, and policy-aware judgment. Do not claim CSAT ownership or de-escalation expertise without a real support context."),
+    "marketing-specialist-resume": ("Connect each achievement to audience, channel, objective, contribution, and measurement. A fictional pattern: 'Coordinated the email and content calendar for a product launch, then summarized engagement patterns for the campaign lead.' This avoids taking credit for an entire brand result or presenting a vanity metric as business impact.", "Early-career marketers can lead with channel projects, internships, writing samples, and reporting work. Senior candidates should distinguish strategy, budget ownership, team leadership, attribution responsibility, and the commercial outcome they influenced.", "Candidates from sales, content, or operations can show relevant audience insight, campaign coordination, CRM hygiene, or reporting. State the channel and contribution accurately instead of relabeling general communication as marketing strategy."),
+    "frontend-developer-resume": ("Demonstrate that interface work reached users: component responsibility, accessibility or responsive behavior, API collaboration, testing, and performance investigation. A fictional bullet: 'Implemented keyboard-accessible form components from an approved design system and resolved validation issues found in browser testing.'", "Junior developers can highlight a focused project with a public demo or repository, but should explain their own code and tests. Senior candidates should show design-system stewardship, technical direction, performance or accessibility ownership, and collaboration across product teams.", "People moving from design or backend work should identify the frontend code, browser behavior, and delivery work they actually completed. Familiarity with Figma or APIs alone is not frontend engineering evidence."),
+    "backend-developer-resume": ("Explain the service responsibility rather than only the language. A fictional line: 'Implemented validation and audit logging for an internal API, adding tests for authorization and error paths.' This gives a reader a boundary, risk, and quality practice without inventing scale.", "New backend developers can make data modeling, API projects, automated tests, and deployment learning concrete. Senior candidates should show system ownership, availability or incident work, security decisions, database trade-offs, and operational collaboration.", "Candidates from data, QA, or frontend roles should point to APIs, SQL, automation, or production support they truly handled. Do not claim infrastructure ownership because you deployed a personal project once."),
+    "mobile-app-developer-resume": ("Make platform depth explicit. A fictional bullet: 'Investigated a post-release crash, reproduced it on affected devices, and added regression coverage before the next store submission.' This shows the release lifecycle; it should not be used if the candidate did not own that work.", "Early-career candidates can lead with one carefully documented app and platform-specific testing. Senior developers should distinguish native versus cross-platform depth, store-release ownership, architecture, analytics or crash triage, and mentorship.", "Web or desktop developers can credibly transition through a mobile project, API work, and device testing. State the framework and platform honestly rather than implying native fluency from cross-platform experience."),
+    "fresh-graduate-resume": ("Treat a project as evidence, not a job title. A fictional pattern: 'Built a three-person course project using Git, documented the test plan, and presented the final workflow to the class.' Name the brief, your contribution, tools, and result; do not describe classroom work as commercial production.", "Lead with education, two or three relevant projects, internships, and selected part-time or volunteer responsibilities. As experience grows, move education below employment and remove low-value coursework before adding a second page.", "For a first role or career pivot, connect transferable proof to the target work: customer communication for support, analysis for accounting, coordination for project roles, or a portfolio project for design and development. A short honest bridge is more credible than a generic objective."),
+}
+
 
 TEMPLATES = {
     "modern-resume-templates": ("Modern Resume Templates", "Modern", "clean sans-serif typography, generous white space, and restrained visual accents", "technology, product, digital operations, and contemporary business roles"),
     "professional-resume-templates": ("Professional Resume Templates", "Professional", "conservative hierarchy, familiar headings, and highly consistent spacing", "finance, administration, healthcare, education, law, and corporate environments"),
     "minimal-resume-templates": ("Minimal Resume Templates", "Minimal", "essential typography, limited rules, and no decorative competition", "candidates with concise, strong evidence in almost any field"),
     "executive-resume-templates": ("Executive Resume Templates", "Executive", "leadership scope, enterprise outcomes, selected career history, and strategic emphasis", "directors, vice presidents, general managers, and senior functional leaders"),
+}
+
+TEMPLATE_GUIDANCE = {
+    "modern-resume-templates": ("It works best when the content is already concise and the employer is comfortable with a contemporary visual tone. It is a poor choice when a conservative sector or a highly dense career history calls for the most conventional presentation.", "Use it for product, digital, and contemporary business applications where clear grouping helps a reader scan varied work. Keep the accent restrained; it should never carry meaning that disappears in a plain-text parse."),
+    "professional-resume-templates": ("It is the safest starting point for regulated, traditional, or unfamiliar hiring contexts. It may feel unnecessarily formal for a portfolio-led creative application where the work sample is expected to carry more personality.", "Use its stable hierarchy when dates, credentials, and employer names need to be easy to compare. The design is intentionally quiet, so the content must supply the evidence."),
+    "minimal-resume-templates": ("It suits short, well-selected evidence and can look sparse when a candidate has many roles, certifications, or technical projects to explain. Do not use minimalism as an excuse to omit context that a recruiter needs.", "Use it when a concise career story benefits from breathing room. If the document becomes crowded, change the content selection or template instead of shrinking the type."),
+    "executive-resume-templates": ("It is for leadership narratives with substantial scope, not simply a more decorative format. It is a weak choice for an early-career candidate whose strongest proof is coursework or a few individual-contributor projects.", "Use it when strategic scope, selected leadership outcomes, and long-term progression need emphasis. Pair high-level claims with enough operational evidence that the reader can understand what you personally led."),
 }
 
 
@@ -273,13 +298,43 @@ EXAMPLES = {
     ]),
 }
 
+EXAMPLE_COMMENTARY = {
+    "resume-before-after": [
+        ("How to use this comparison", "These are fictional teaching examples, not claims about a real employer or candidate. Keep the underlying facts, then add only the scope, tools, volume, or outcome you can support from your own records. A stronger bullet is specific because it is easier to explain in an interview, not because it contains a number."),
+        ("Adapt by experience level", "An early-career candidate may use project scope, test coverage, coursework deliverables, or customer responsibilities in place of business metrics. A senior candidate can add decision authority, cross-functional influence, or a verified operational outcome. In both cases, do not copy the phrasing if it does not describe your work."),
+    ],
+    "ats-optimization-examples": [
+        ("What these changes do not prove", "A standard heading or a truthful role term can make a document easier to read, but it does not reveal an employer's screening rules or guarantee selection. Keep terms in context: a skills list should be supported by a role, project, training, or accomplishment you can discuss."),
+        ("A practical review order", "First check factual accuracy and relevance, then test the exported document's reading order, and finally remove decorative elements that contain essential information. This sequence prevents formatting work from masking weak or unsupported content."),
+    ],
+    "resume-tailoring-examples": [
+        ("Why the versions are different", "The fictional coordinator has not gained new skills between applications. Each version simply places a different truthful part of the same history near the top. That is the boundary of responsible tailoring: emphasis may change, but employers, titles, tools, dates, and outcomes do not."),
+        ("Before you submit", "Save the posting with the tailored resume and highlight every claim you may need to discuss. If a requested requirement is missing, decide whether to address it honestly in a cover letter, develop it, or pursue a better-fit role; never add it solely for a match signal."),
+    ],
+}
+
 
 def build_guide_pages():
     pages = {}
     slugs = list(GUIDE_SPECS)
+    # Retain the useful workflow advice, but use only the two closures that support
+    # each guide's subject. Appending the same six generic sections to every guide
+    # made otherwise distinct articles read like generated landing pages.
+    closer_plan = {
+        "ats-resume-guide": (0, 3), "how-ats-systems-work": (2, 5),
+        "resume-writing-tips": (1, 5), "common-resume-mistakes": (3, 5),
+        "tailor-resume-job-description": (0, 4), "resume-templates-guide": (2, 3),
+        "cover-letter-guide": (1, 5), "interview-preparation-guide": (1, 4),
+        "ats-keywords-guide": (0, 5), "resume-action-verbs": (3, 5),
+        "resume-skills-guide": (0, 3), "professional-summary-examples": (1, 3),
+        "work-experience-bullet-points": (1, 5), "resume-checklist-before-applying": (4, 5),
+        "resume-formatting-guide": (2, 3), "one-page-vs-two-page-resume": (3, 5),
+        "cover-letter-examples": (1, 5),
+    }
     for index, (slug, (title, description, intro, sections)) in enumerate(GUIDE_SPECS.items()):
         related = [slugs[(index + 1) % len(slugs)], slugs[(index + 3) % len(slugs)], "faq"]
-        pages[slug] = page(title, description, "Career Guide", intro, sections + GUIDE_CLOSERS, related)
+        selected_closers = [GUIDE_CLOSERS[item] for item in closer_plan[slug]]
+        pages[slug] = page(title, description, "Career Guide", intro, sections + selected_closers, related)
     return pages
 
 
@@ -304,17 +359,18 @@ def build_profession_pages():
     slugs = list(PROFESSIONS)
     for i, (slug, (title, role, purpose, _skills, _metrics, _example)) in enumerate(PROFESSIONS.items()):
         detail = PROFESSION_DETAILS[slug]
+        role_evidence, seniority, transition = PROFESSION_PLAYBOOKS[slug]
         sections = [
             (f"What recruiters look for in a {role}", detail["recruiter"]),
-            ("Recommended resume structure", f"Use a specific summary, a focused skills section, reverse-chronological experience, and selected projects where they add evidence. Keep a single main column, conventional headings, readable dates, and selectable text. For this role, {detail['check'].lower()}"),
+            ("Choose evidence before choosing keywords", role_evidence),
+            ("Recommended resume structure", f"Use a specific summary, a focused skills section, reverse-chronological experience, and selected projects where they add evidence. For this role, {detail['check'].lower()} Keep a single primary column, conventional headings, readable dates, and selectable text."),
             ("Professional summary example", detail["summary"] + " This is an educational pattern, not text to copy. Replace every detail with your own role, tools, scope, and truthful outcome."),
             ("Skills and ATS keywords", detail["keywords"]),
             ("Fictional work experience bullet examples", detail["bullets"] + " Use numbers only when you can verify them, and make shared work clearly shared."),
-            ("Common mistakes and evidence choices", detail["mistakes"] + " " + detail["education"]),
-            ("Projects, work samples, and supporting evidence", f"Use a project, work sample, or portfolio only when it adds proof that a recruiter cannot see elsewhere. For a {role.lower()} application, explain the problem, your individual contribution, the relevant tools or methods, and a truthful result. Keep confidential material private, test every public link, and do not let a visual sample replace a readable resume. Early-career candidates can use coursework, volunteer work, or a small self-directed project when its scope and learning are described accurately."),
-            ("Tailor the role language without copying the posting", f"Read the job description for the work environment, responsibilities, tools, and outcomes that recur. Then find the closest supported example in your history and place it early. For a {role.lower()} role, an exact term can be helpful when it truthfully names work you performed, but it should appear naturally beside evidence. A missing requirement is information for your decision, not an invitation to stretch a title, credential, metric, or skill."),
-            ("Use action verbs that show real ownership", f"Choose verbs that match your contribution: analyzed, built, coordinated, delivered, improved, reconciled, resolved, tested, or supported. Follow the verb with the work, context, and result so a reader can understand the claim. If the outcome belonged to a team, say partnered, contributed, or supported rather than implying sole ownership. Specific, accurate language is more persuasive than inflated claims and makes interview preparation easier."),
-            ("ATS and final file review", f"Keep identity, role direction, skills, experience, education, dates, and links in ordinary selectable text. Use a single primary reading column and familiar headings rather than icons, charts, text boxes, or hidden keywords. Follow the employer's required file format, then open the exported document and copy its text into a plain editor. Check that the reading order, names, dates, and bullets remain clear before uploading."),
+            ("Seniority and career-transition positioning", seniority + " " + transition),
+            ("Common mistakes and supporting material", detail["mistakes"] + " " + detail["education"]),
+            ("Tailor the role language without copying the posting", f"Read the posting for recurring work, tools, and outcomes, then place your closest supported example early. For a {role.lower()} role, a term is useful only when it accurately names work you performed. A missing requirement is information for your decision, not an invitation to stretch a title, credential, metric, or skill."),
+            ("Final file review", f"Keep identity, role direction, skills, experience, education, dates, and links in ordinary selectable text. Follow the employer's required format, then open the exported document and check that reading order, names, dates, and bullets remain clear. {detail['check']}"),
             ("Final application checklist", detail["check"] + " Compare the final document with the posting, remove unsupported wording, proofread links and dates, then export and check the plain-text reading order."),
         ]
         related = (slugs[(i + 1) % len(slugs)], "ats-resume-guide", "resume-action-verbs", "resume-skills-guide", "tailor-resume-job-description")
@@ -326,12 +382,14 @@ def build_template_pages():
     pages = {}
     slugs = list(TEMPLATES)
     for i, (slug, (title, style, design, audience)) in enumerate(TEMPLATES.items()):
+        when_not, use_case = TEMPLATE_GUIDANCE[slug]
         pages[slug] = page(title, f"Explore {style.lower()} resume template principles, ATS considerations, content hierarchy, and selection guidance.", "Template Collection",
             f"{style} resume templates use {design}. The right choice supports the content and application context instead of drawing attention away from qualifications.", [
                 ("Design character", f"This collection is defined by {design}. It is especially useful for {audience}. Personality comes from controlled typography and spacing rather than icons, skill bars, photos, or complicated page construction."),
                 ("ATS considerations", "Keep essential information in one primary reading column with standard headings and selectable text. Avoid placing contact details in a page header, embedding words in graphics, or using floating boxes. A polished document can remain technically straightforward."),
                 ("Content hierarchy", "Lead with identity and role direction, then place the most persuasive evidence according to career stage. Experienced candidates usually prioritize professional experience. Recent graduates may raise education and projects. Skills should summarize demonstrated capabilities rather than replace dated evidence."),
-                ("When to choose it", f"Choose a {style.lower()} template when its tone matches the employer and your content volume fits without artificial compression. Test long lines, multiple roles, and a second page. The template should remain stable after editing and export."),
+                ("When to choose it—and when not to", f"Choose a {style.lower()} template when its tone matches the employer and your content volume fits without artificial compression. {when_not}"),
+                ("Practical use case", use_case),
                 ("How to customize", "Change content before decoration. Use a restrained color only if appropriate, keep comfortable font sizes, align dates consistently, and preserve spacing patterns. Export DOCX when editing or employer instructions favor it; export a text-based PDF when appearance must remain fixed."),
             ], related=(slugs[(i+1)%len(slugs)], "resume-templates-guide", "ats-resume-guide"))
     return pages
@@ -340,13 +398,21 @@ def build_template_pages():
 GUIDE_PAGES = build_guide_pages()
 PROFESSION_PAGES = build_profession_pages()
 TEMPLATE_PAGES = build_template_pages()
-EXAMPLE_PAGES = {slug: page(title, description, "Resume Examples", description, sections,
+EXAMPLE_PAGES = {slug: page(title, description, "Resume Examples", description, sections + EXAMPLE_COMMENTARY[slug],
     ("ats-resume-guide", "tailor-resume-job-description", "common-resume-mistakes")) for slug, (title, description, sections) in EXAMPLES.items()}
 ALL_PAGES = {**POLICY_PAGES, **GUIDE_PAGES, **PROFESSION_PAGES, **TEMPLATE_PAGES, **EXAMPLE_PAGES}
 
 
 def rebrand(value):
     if isinstance(value, str):
+        # Earlier source imports left a few UTF-8 characters decoded as Latin-1.
+        # Correct that display-only corruption centrally so public prose never shows
+        # broken quotation marks, arrows, or accented words.
+        try:
+            if any(marker in value for marker in ("Ã", "â", "â€")):
+                value = value.encode("latin-1").decode("utf-8")
+        except UnicodeError:
+            pass
         return value.replace("support@clearcv.example", "support@atsforge.example").replace("ClearCV", "ATSForge")
     if isinstance(value, tuple):
         return tuple(rebrand(item) for item in value)
